@@ -24,9 +24,10 @@ class Timer():
                                 self.saved_time
         else:
             self.elapsed_time = self.saved_time
-        return self._timedelta_to_str()
+        return self.sec_to_str(self.elapsed_time.seconds)
 
-    def _timedelta_to_str(self) -> str:
-        return f"{self.elapsed_time.seconds // 3600}".zfill(2) + ':' + \
-               f"{self.elapsed_time.seconds % 3600 // 60}".zfill(2) + ':' + \
-               f"{self.elapsed_time.seconds % 60}".zfill(2)
+    @staticmethod
+    def sec_to_str(seconds) -> str:
+        return f"{seconds // 3600}".zfill(2) + ':' + \
+               f"{seconds % 3600 // 60}".zfill(2) + ':' + \
+               f"{seconds % 60}".zfill(2)

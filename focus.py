@@ -9,7 +9,7 @@ from styles import styles
 
 class Focus(Widget):
     def __init__(self) -> None:
-        super().__init__(name="Process")
+        super().__init__(name="Focus")
         self.timer = Timer()
 
     def on_mount(self):
@@ -23,7 +23,7 @@ class Focus(Widget):
                 vertical="middle",
                 style=styles["FOCUS"]
             ),
-            title="Process",
+            title="Focus",
             border_style=styles["FOCUS_BORDER"],
             expand=True,
         )
