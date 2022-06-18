@@ -3,19 +3,17 @@ from rich.text import Text
 from rich.table import Table
 from rich.panel import Panel
 
+from styles import styles
+
 
 class TimeTable(Widget):
-    def __init__(self, border_style="", h_style="", r_style="") -> None:
+    def __init__(self) -> None:
         super().__init__()
-        self.border_style = border_style
-        self.h_style = h_style
-        self.r_style = r_style
-
         self.table = Table(
             box=None,
             expand=True,
-            header_style=self.h_style,
-            row_styles=[r_style],
+            header_style=styles["TIME_TABLE_HEADER"],
+            row_styles=[styles["TIME_TABLE_TEXT"]],
             )
         self.table.add_column(header="ID", ratio=1)
         self.table.add_column(header="Task", ratio=2)
@@ -28,12 +26,9 @@ class TimeTable(Widget):
                 self.table,
                 title="Time table",
                 highlight=True,
-                border_style=self.border_style,
+                border_style=styles["TIME_TABLE_BORDER"],
                 expand=True,
                 )
 
     def render(self) -> Panel:
         return self.content
-
-
-

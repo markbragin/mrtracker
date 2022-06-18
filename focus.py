@@ -4,14 +4,13 @@ from rich.panel import Panel
 
 
 from timer import Timer
+from styles import styles
 
 
-class Process(Widget):
-    def __init__(self, border_style="", style="") -> None:
+class Focus(Widget):
+    def __init__(self) -> None:
         super().__init__(name="Process")
         self.timer = Timer()
-        self.border_style = border_style
-        self.style = style
 
     def on_mount(self):
         self.set_interval(1, self.refresh)
@@ -22,10 +21,10 @@ class Process(Widget):
             Align.center(
                 self.elapsed_time,
                 vertical="middle",
-                style=self.style
+                style=styles["FOCUS"]
             ),
             title="Process",
-            border_style=self.border_style,
+            border_style=styles["FOCUS_BORDER"],
             expand=True,
         )
         return self.content
