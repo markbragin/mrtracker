@@ -8,7 +8,8 @@ from timer import Timer
 
 
 class TimeTable(Widget):
-    def on_mount(self):
+    def __init__(self):
+        super().__init__(name="TimeTable")
         self.collect_data()
 
     def collect_data(self) -> None:

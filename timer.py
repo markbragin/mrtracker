@@ -6,25 +6,30 @@ class Timer():
         self.restart()
     
     def restart(self):
-        self.is_working = False
+        self.on = False
+        self.paused = False
         self.saved_time = timedelta()
 
     def switch(self):
-        if self.is_working:
-            self.is_working = False
+        self.on = True
+        if self.paused:
+            self.paused = False
             self.saved_time += datetime.now() - self.start_time
         else:
-            self.is_working = True
+            self.paused = True
             self.start_time = datetime.now()
 
     def get_elapsed_time(self):
-        if self.is_working:
+        if self.paused:
             self.elapsed_time = datetime.now() - \
                                 self.start_time + \
                                 self.saved_time
         else:
             self.elapsed_time = self.saved_time
-        return self.sec_to_str(self.elapsed_time.seconds)
+        return self.elapsed_time.seconds
+
+    def get_elapsed_time_str(self):
+        return self.sec_to_str(self.get_elapsed_time())
 
     @staticmethod
     def sec_to_str(seconds) -> str:

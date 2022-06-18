@@ -3,19 +3,19 @@ from typing import Union
 from textual.widget import Widget
 from rich.console import RenderableType
 from rich.text import Text
+from textual.widgets import Static
 
 from styles import styles
 
 
 class Footer(Widget):
     def __init__(self) -> None:
-        super().__init__()
+        super().__init__(name="Footer")
         self._key_text: Union[Text, None] = None
 
     def make_key_text(self) -> Text:
         """Create text containing all the keys."""
         text = Text(
-            style="white",
             no_wrap=True,
             overflow="ellipsis",
             justify="left",
@@ -29,7 +29,6 @@ class Footer(Widget):
             )
             key_text = Text.assemble(
                     f" {key_display}-{binding.description}",
-                    style=styles["FOOTER"],
             )
             text.append_text(key_text)
         return text
@@ -37,4 +36,4 @@ class Footer(Widget):
     def render(self) -> RenderableType:
         if self._key_text is None:
             self._key_text = self.make_key_text()
-        return self._key_text
+        return Static(self._key_text, style=styles["FOOTER"])

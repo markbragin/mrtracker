@@ -1,3 +1,4 @@
 .vim*
 *.log
 *.db
+__pycache__
