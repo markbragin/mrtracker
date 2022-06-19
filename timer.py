@@ -1,38 +1,44 @@
-from datetime import datetime, timedelta
+from rich.align import Align
+from rich.console import RenderableType
+from rich.panel import Panel
+
+from fwidget import Fwidget
+from stopwatch import Stopwatch
+from styles import styles
 
 
-class Timer():
+class Timer(Fwidget):
     def __init__(self) -> None:
-        self.restart()
-    
-    def restart(self):
-        self.on = False
-        self.paused = False
-        self.saved_time = timedelta()
+        super().__init__(name="Timer")
+        self.timer = Stopwatch()
 
-    def switch(self):
-        self.on = True
-        if self.paused:
-            self.paused = False
-            self.saved_time += datetime.now() - self.start_time
-        else:
-            self.paused = True
-            self.start_time = datetime.now()
+    async def on_mount(self):
+        await self.focus()
+        self.set_interval(0.5, self.refresh)
 
-    def get_elapsed_time(self):
-        if self.paused:
-            self.elapsed_time = datetime.now() - \
-                                self.start_time + \
-                                self.saved_time
-        else:
-            self.elapsed_time = self.saved_time
-        return self.elapsed_time.seconds
+    @property
+    def time(self) -> int:
+        return self.timer.get_elapsed_time()
 
-    def get_elapsed_time_str(self):
-        return self.sec_to_str(self.get_elapsed_time())
+    @property
+    def time_str(self) -> str:
+        return self.timer.get_elapsed_time_str()
 
-    @staticmethod
-    def sec_to_str(seconds) -> str:
-        return f"{seconds // 3600}".zfill(2) + ':' + \
-               f"{seconds % 3600 // 60}".zfill(2) + ':' + \
-               f"{seconds % 60}".zfill(2)
+    def switch_timer(self):
+        self.timer.switch()
+
+    def restart_timer(self):
+        self.timer.restart()
+
+    def render(self) -> RenderableType:
+        self.panel = Panel(
+            Align.center(
+                self.time_str,
+                vertical="middle",
+                style=styles["FOCUS"]
+            ),
+            title="for",
+            border_style=styles["FOCUS_BORDER"],
+            expand=True,
+        )
+        return self.panel

@@ -1,17 +1,19 @@
+from textual.reactive import Reactive
 from textual.widget import Widget
 from rich.align import Align
 from rich.panel import Panel
 
-from timer import Timer
 from styles import styles
 
 
 class Message(Widget):
-    def __init__(self, msg="Welcome to time_tracker TUI") -> None:
+
+    content: Reactive[str] = Reactive("")
+    error: Reactive[bool] = Reactive(False)
+
+    def __init__(self, msg: str = "Welcome to time tracker") -> None:
         super().__init__(name="Message")
         self.content = msg
-        self._style = styles["MESSAGE"]
-        self.error = False
 
     def update(self, msg: str, error: bool = False):
         self.error = error
@@ -20,9 +22,9 @@ class Message(Widget):
 
     def render(self):
         if self.error:
-            self._style = styles["MESSAGE_ERROR"]
+            self.style = styles["MESSAGE_ERROR"]
         else:
-            self._style = styles["MESSAGE"]
+            self.style = styles["MESSAGE"]
 
         self.panel = Panel(
             Align.center(
@@ -31,8 +33,7 @@ class Message(Widget):
                 style="white"
             ),
             title="Message",
-            border_style=self._style,
+            border_style=self.style,
             expand=True,
         )
         return self.panel
-

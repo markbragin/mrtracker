@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 rich = "*"
 textual = "*"
+autopep8 = "*"
 
 [dev-packages]
 

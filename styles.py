@@ -1,5 +1,5 @@
 styles = {
-    "HEADER": "cyan",
+    "HEADER": "cyan bold",
     "TIME_TABLE_HEADER": "green",
     "TIME_TABLE_TEXT": "white",
     "TIME_TABLE_BORDER": "blue",
