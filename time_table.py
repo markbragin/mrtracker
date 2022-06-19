@@ -1,13 +1,14 @@
-from textual.widget import Widget
+from rich.console import RenderableType
 from rich.table import Table
 from rich.panel import Panel
 
 import db
+from fwidget import Fwidget
 from styles import styles
-from timer import Timer
+from stopwatch import Stopwatch as time
 
 
-class TimeTable(Widget):
+class TimeTable(Fwidget):
     def __init__(self):
         super().__init__(name="TimeTable")
         self.collect_data()
@@ -31,20 +32,19 @@ class TimeTable(Widget):
             self.table.add_row(
                 f"{id}",
                 row[0],
-                Timer.sec_to_str(row[1]) if row[1] else Timer.sec_to_str(0),
-                Timer.sec_to_str(row[2]) if row[2] else Timer.sec_to_str(0),
-                Timer.sec_to_str(row[3]) if row[3] else Timer.sec_to_str(0),
+                time.sec_to_str(row[1]) if row[1] else time.sec_to_str(0),
+                time.sec_to_str(row[2]) if row[2] else time.sec_to_str(0),
+                time.sec_to_str(row[3]) if row[3] else time.sec_to_str(0),
             )
 
         self.panel = Panel(
             self.table,
             title="Time table",
-            highlight=True,
             border_style=styles["TIME_TABLE_BORDER"],
             expand=True,
         )
 
         self.refresh()
 
-    def render(self) -> Panel:
+    def render(self) -> RenderableType:
         return self.panel
