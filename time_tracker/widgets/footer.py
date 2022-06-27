@@ -5,7 +5,7 @@ from rich.console import RenderableType
 from rich.text import Text
 from textual.widgets import Static
 
-from .styles import styles
+from ..styles import styles
 
 
 class Footer(Widget):

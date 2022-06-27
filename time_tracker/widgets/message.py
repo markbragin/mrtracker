@@ -3,7 +3,7 @@ from textual.widget import Widget
 from rich.align import Align
 from rich.panel import Panel
 
-from .styles import styles
+from ..styles import styles
 
 
 class Message(Widget):

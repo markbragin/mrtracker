@@ -3,13 +3,15 @@ from typing import List, Tuple
 
 import sqlite3
 
+from .definition import ROOT_DIR, ROOT_PKG_DIR
 
-conn = sqlite3.connect(os.path.join("data", "time.db"))
+
+conn = sqlite3.connect(os.path.join(ROOT_DIR, "data", "time.db"))
 cur = conn.cursor()
 
 
 def _init_db() -> None:
-    with open("createdb.sql", "r") as file:
+    with open(os.path.join(ROOT_PKG_DIR, "createdb.sql"), "r") as file:
         sql = file.read()
     cur.executescript(sql)
     conn.commit()

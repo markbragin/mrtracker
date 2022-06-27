@@ -1,4 +1,8 @@
 from .app import MyApp
 
-if __name__ == '__main__':
+
+def main():
     MyApp.run(title="Time tracker", log="textual.log")
+
+if __name__ == "__main__":
+    main()

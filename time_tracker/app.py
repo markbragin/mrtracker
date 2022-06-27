@@ -5,11 +5,11 @@ from textual.widgets import Header
 from textual.widgets import ScrollView
 
 from . import db
-from .timer import Timer
-from .footer import Footer
-from .input_text import InputText
-from .message import Message
-from .time_table import TimeTable
+from .widgets.timer import Timer
+from .widgets.footer import Footer
+from .widgets.input_text import InputText
+from .widgets.message import Message
+from .widgets.time_table import TimeTable
 from .styles import styles
 
 
