@@ -2,10 +2,10 @@ from rich.console import RenderableType
 from rich.table import Table
 from rich.panel import Panel
 
-import db
-from fwidget import Fwidget
-from styles import styles
-from stopwatch import Stopwatch as time
+from . import db
+from .fwidget import Fwidget
+from .styles import styles
+from .stopwatch import Stopwatch as time
 
 
 class TimeTable(Fwidget):

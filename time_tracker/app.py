@@ -4,13 +4,13 @@ from textual.app import App
 from textual.widgets import Header
 from textual.widgets import ScrollView
 
-import db
-from timer import Timer
-from footer import Footer
-from input_text import InputText
-from message import Message
-from time_table import TimeTable
-from styles import styles
+from . import db
+from .timer import Timer
+from .footer import Footer
+from .input_text import InputText
+from .message import Message
+from .time_table import TimeTable
+from .styles import styles
 
 
 class MyApp(App):
@@ -102,6 +102,3 @@ class MyApp(App):
         if not self.timer.timer.on:
             await self.timer.focus()
             await self.action_switch()
-
-
-MyApp.run(title="Time tracker", log="textual.log")

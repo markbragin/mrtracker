@@ -4,7 +4,7 @@ from typing import List, Tuple
 import sqlite3
 
 
-conn = sqlite3.connect(os.path.join("db", "time.db"))
+conn = sqlite3.connect(os.path.join("data", "time.db"))
 cur = conn.cursor()
 
 

@@ -7,8 +7,8 @@ from rich.text import Text
 from textual.reactive import Reactive
 from textual import events
 
-from fwidget import Fwidget
-from styles import styles
+from .fwidget import Fwidget
+from .styles import styles
 
 
 class InputText(Fwidget):

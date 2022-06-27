@@ -2,9 +2,9 @@ from rich.align import Align
 from rich.console import RenderableType
 from rich.panel import Panel
 
-from fwidget import Fwidget
-from stopwatch import Stopwatch
-from styles import styles
+from .fwidget import Fwidget
+from .stopwatch import Stopwatch
+from .styles import styles
 
 
 class Timer(Fwidget):
