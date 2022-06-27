@@ -2,12 +2,13 @@ import os
 from typing import List, Tuple
 
 import sqlite3
+from platformdirs import user_data_dir
 
-from .definition import ROOT_DIR, ROOT_PKG_DIR
+from .definition import ROOT_PKG_DIR
 
 
-conn = sqlite3.connect(os.path.join(ROOT_DIR, "data", "time.db"))
-cur = conn.cursor()
+DB_NAME = "time.db"
+USER_DATA_DIR = user_data_dir("time-tracker-tui")
 
 
 def _init_db() -> None:
@@ -17,15 +18,12 @@ def _init_db() -> None:
     conn.commit()
 
 
-def check_db_exists() -> None:
+def _table_exists() -> bool:
     cur.execute(
             "SELECT name FROM sqlite_master "
             "WHERE type='table' AND name='sessions'"
     )
-    table_exists = cur.fetchall()
-    if table_exists:
-        return
-    _init_db()
+    return True if cur.fetchall() else False
 
 
 def _create_total_table() -> None:
@@ -103,4 +101,13 @@ def insert_session(task: str, date: str, time: int):
     conn.commit()
 
 
-check_db_exists()
+try:
+    os.mkdir(USER_DATA_DIR)
+except FileExistsError:
+    pass
+
+conn = sqlite3.connect(os.path.join(USER_DATA_DIR, DB_NAME))
+cur = conn.cursor()
+
+if not _table_exists():
+    _init_db()

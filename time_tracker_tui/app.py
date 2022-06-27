@@ -14,7 +14,6 @@ from .styles import styles
 
 
 class MyApp(App):
-
     async def on_load(self) -> None:
         await self.bind("ctrl+c", "quit", "exit")
         await self.bind("ctrl+p", "switch", "pause/resume")
@@ -45,7 +44,7 @@ class MyApp(App):
             focus="left,r2",
             message="left,r3",
             table="right,header-end|footer-start",
-            footer="left-start|right-end,footer"
+            footer="left-start|right-end,footer",
         )
         self.grid.place(
             header=self.header,
@@ -53,7 +52,7 @@ class MyApp(App):
             focus=self.timer,
             message=self.message,
             table=self.scroll,
-            footer=self.footer
+            footer=self.footer,
         )
 
     def save_data(self) -> bool:
@@ -62,7 +61,7 @@ class MyApp(App):
         db.insert_session(
             self.input_text.content,
             datetime.now().strftime("%Y-%m-%d"),
-            self.timer.time
+            self.timer.time,
         )
         return True
 
@@ -91,9 +90,11 @@ class MyApp(App):
 
     async def action_new_task(self) -> None:
         if self.timer.timer.on:
-            self.message.update("Timer is running. "
-                                "To start new task restart the timer first.",
-                                error=True)
+            self.message.update(
+                "Timer is running. "
+                "To start new task restart the timer first.",
+                error=True,
+            )
         else:
             await self.input_text.focus()
             self.message.update("Enter the task and press enter")
