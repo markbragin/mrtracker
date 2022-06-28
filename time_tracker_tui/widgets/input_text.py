@@ -27,8 +27,10 @@ class InputText(Fwidget):
         if event.key == "ctrl+h":
             if self.content:
                 self.content = self.content[:-1]
-        elif event.key in ["escape", "enter"] or "ctrl+" in event.key:
+        elif event.key in ["enter"] or "ctrl+" in event.key:
             return
+        elif event.key == "escape":
+            self._clear_content()
         else:
             self.content += event.key
             event.stop()
