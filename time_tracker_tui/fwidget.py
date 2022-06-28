@@ -17,3 +17,6 @@ class Fwidget(Widget, can_focus=True):
 
     async def on_blur(self, event: events.Blur) -> None:
         self.has_focus = False
+
+    async def _unfocus(self) -> None:
+        await self.app.set_focus(None)

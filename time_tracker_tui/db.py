@@ -10,6 +10,8 @@ from .definition import ROOT_PKG_DIR
 DB_NAME = "time.db"
 USER_DATA_DIR = user_data_dir("time-tracker-tui")
 
+table_name = "sessions"
+
 
 def _init_db() -> None:
     with open(os.path.join(ROOT_PKG_DIR, "createdb.sql"), "r") as file:
@@ -21,7 +23,7 @@ def _init_db() -> None:
 def _table_exists() -> bool:
     cur.execute(
             "SELECT name FROM sqlite_master "
-            "WHERE type='table' AND name='sessions'"
+            f"WHERE type='table' AND name='{table_name}'"
     )
     return True if cur.fetchall() else False
 
@@ -30,7 +32,7 @@ def _create_total_table() -> None:
     cur.execute(
             "CREATE TABLE tt0 AS "
             "SELECT s.task, sum(s.time) as total "
-            "FROM sessions s "
+            f"FROM {table_name} s "
             "GROUP BY s.task "
             "ORDER BY s.id"
     )
@@ -41,7 +43,7 @@ def _create_today_table() -> None:
     cur.execute(
             "CREATE TABLE tt1 AS "
             "SELECT s.task, sum(s.time) as today "
-            "FROM sessions s "
+            f"FROM {table_name} s "
             "WHERE s.date = date('now') "
             "GROUP BY s.task"
     )
@@ -52,7 +54,7 @@ def _create_month_table() -> None:
     cur.execute(
             "CREATE TABLE tt2 AS "
             "SELECT s.task, sum(s.time) as month "
-            "FROM sessions s "
+            f"FROM {table_name} s "
             "WHERE s.date LIKE strftime('%Y-%m-%%', 'now') "
             "GROUP BY s.task"
     )
@@ -93,11 +95,16 @@ def fetch_full_info() -> List[Tuple]:
     return result
 
 
-def insert_session(task: str, date: str, time: int):
+def insert_session(task: str, date: str, time: int) -> None:
     cur.execute(
-        "INSERT INTO sessions (task, date, time) "
+        f"INSERT INTO {table_name} (task, date, time) "
         f"VALUES ('{task}', '{date}', {time})"
     )
+    conn.commit()
+
+
+def delete_task(task: str) -> None:
+    cur.execute(f"DELETE FROM {table_name} WHERE task = '{task}'")
     conn.commit()
 
 

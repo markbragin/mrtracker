@@ -4,48 +4,48 @@ from rich.console import RenderableType
 from rich.table import Table
 from rich.panel import Panel
 from textual import events
-from textual.reactive import watch
+from textual.reactive import Reactive
 
 from .. import db
 from ..fwidget import Fwidget
 from ..styles import styles
 from ..stopwatch import Stopwatch as time
+from ..operation import Operation
 
 
 class TimeTable(Fwidget):
+
+    data: Reactive[list[tuple]]
+    pos: Reactive[int]
+
     def __init__(self, name: str | None = "TimeTable"):
         super().__init__(name=name)
         self.collect_data()
 
-    async def on_mount(self) -> None:
-        watch(self.app, "blocked", self.set_can_focus)
-
-    async def set_can_focus(self, blocked: bool) -> None:
-        self.can_focus = False if blocked else True
-
-    def on_key(self, event: events.Key) -> None:
+    async def on_key(self, event: events.Key) -> None:
         if event.key in ["j", "down"]:
             self._next_item()
-        if event.key in ["k", "up"]:
+        elif event.key in ["k", "up"]:
             self._prev_item()
+        elif event.key == "enter":
+            if self.app.operation == Operation.delete:
+                await self.app.delete_task(self.data[self.pos][0])
+                await self._unfocus()
+        self.refresh()
 
     def _next_item(self) -> None:
         if self.pos < self.len - 1:
             self.pos += 1
-            self.refresh()
 
     def _prev_item(self) -> None:
         if self.pos > 0:
             self.pos -= 1
-            self.refresh()
-    
+
     def on_focus(self, event: events.Focus) -> None:
         self.pos = 0
-        self.refresh()
 
     def on_blur(self, event: events.Focus) -> None:
         self.pos = -1
-        self.refresh()
 
     def collect_data(self) -> None:
         self.data = db.fetch_full_info()
@@ -80,7 +80,6 @@ class TimeTable(Fwidget):
 
         panel = Panel(
             table,
-            title="Time table",
             border_style=styles["TIME_TABLE_BORDER"],
             expand=True,
         )

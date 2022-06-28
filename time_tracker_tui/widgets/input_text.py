@@ -22,26 +22,26 @@ class InputText(Fwidget):
         self.style = styles["INPUT_LOST_FOCUS"]
 
     async def on_mount(self) -> None:
-        watch(self.app, "blocked", self.set_can_focus)
+        watch(self.app, "blocked_input", self.block)
 
-    async def set_can_focus(self, blocked: bool) -> None:
-        self.can_focus = False if blocked else True
+    async def block(self, blocked_input: bool) -> None:
+        self.can_focus = False if blocked_input else True
 
     async def on_key(self, event: events.Key) -> None:
         if event.key == "ctrl+h":
             if self.content:
                 self.content = self.content[:-1]
+            event.stop()
         elif "ctrl+" in event.key:
             return
         elif event.key == "enter":
-            await self.app.run_new_task()
+            self.app.run_new_task()
+            await self._unfocus()
         elif event.key == "escape":
             self.clear_content()
         else:
             self.content += event.key
             event.stop()
-
-        self.refresh()
 
     def clear_content(self) -> None:
         self.content = ""

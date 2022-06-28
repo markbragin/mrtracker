@@ -21,7 +21,6 @@ class Message(Widget, can_focus=False):
     def update(self, msg: str, error: bool = False):
         self.error = error
         self.content = msg
-        self.refresh()
 
     def render(self):
         if self.error:
