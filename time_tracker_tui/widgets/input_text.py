@@ -35,7 +35,7 @@ class InputText(Fwidget):
         elif "ctrl+" in event.key:
             return
         elif event.key == "enter":
-            self.app.run_new_task()
+            self.app.start_task()
             await self._unfocus()
         elif event.key == "escape":
             self.clear_content()

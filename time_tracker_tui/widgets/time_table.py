@@ -1,4 +1,5 @@
 from __future__ import annotations
+from webbrowser import Opera
 
 from rich.console import RenderableType
 from rich.table import Table
@@ -30,7 +31,9 @@ class TimeTable(Fwidget):
         elif event.key == "enter":
             if self.app.operation == Operation.delete:
                 await self.app.delete_task(self.data[self.pos][0])
-                await self._unfocus()
+            elif self.app.operation == Operation.start:
+                await self.app.start_existing_task(self.data[self.pos][0])
+            await self._unfocus()
         self.refresh()
 
     def _next_item(self) -> None:

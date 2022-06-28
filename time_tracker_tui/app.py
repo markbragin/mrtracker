@@ -17,6 +17,7 @@ class MyApp(App):
         await self.bind("ctrl+c", "quit", "exit")
         await self.bind("ctrl+p", "switch", "pause/resume")
         await self.bind("ctrl+r", "restart", "save+reset")
+        await self.bind("ctrl+s", "start_existing_task", "start existing task")
         await self.bind("ctrl+n", "new_task", "new task")
         await self.bind("ctrl+d", "delete_task", "delete task")
         await self.bind("escape", "reset_focus", "reset focus to the timer")
@@ -25,6 +26,7 @@ class MyApp(App):
         self.main_v = MainView()
         await self.view.dock(self.main_v)
         watch(self.main_v.timer, "running", self.set_blocked)
+
     async def set_blocked(self, running: bool) -> None:
         self.blocked_input = running
 
@@ -33,6 +35,16 @@ class MyApp(App):
         self.save_data()
         self.main_v.message.update("Shutdown")
         await self.shutdown()
+
+    def save_data(self) -> bool:
+        if not (self.main_v.timer.time and self.main_v.input_text.content):
+            return False
+        db.insert_session(
+            self.main_v.input_text.content,
+            datetime.now().strftime("%Y-%m-%d"),
+            self.main_v.timer.time,
+        )
+        return True
 
     def action_switch(self) -> None:
         if not self.main_v.input_text.content:
@@ -64,26 +76,13 @@ class MyApp(App):
             await self.main_v.input_text.focus()
             self.main_v.message.update("Enter the task and press [b]ENTER[/].")
 
+    def start_task(self) -> None:
+        self.action_switch()
+
     async def action_delete_task(self) -> None:
         self.operation = Operation.delete
         await self.main_v.table.focus()
         self.main_v.message.update("Select the task and press [b]ENTER[/].")
-
-    async def action_reset_focus(self) -> None:
-        await self.set_focus(None)
-
-    def run_new_task(self) -> None:
-        self.action_switch()
-
-    def save_data(self) -> bool:
-        if not (self.main_v.timer.time and self.main_v.input_text.content):
-            return False
-        db.insert_session(
-            self.main_v.input_text.content,
-            datetime.now().strftime("%Y-%m-%d"),
-            self.main_v.timer.time,
-        )
-        return True
 
     async def delete_task(self, task: str) -> None:
         db.delete_task(task)
@@ -91,3 +90,16 @@ class MyApp(App):
         await self.main_v.t_scroll.update(self.main_v.table)
         self.main_v.message.update(f"[b green]{task}[/] has been deleted.")
         self.operation = Operation.none
+
+    async def action_start_existing_task(self) -> None:
+        self.operation = Operation.start
+        await self.main_v.table.focus()
+        self.main_v.message.update("Select the task and press [b]ENTER[/].")
+
+    async def start_existing_task(self, task: str) -> None:
+        self.main_v.input_text.content = task
+        self.operation = Operation.none
+        self.start_task()
+
+    async def action_reset_focus(self) -> None:
+        await self.set_focus(None)
