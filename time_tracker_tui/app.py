@@ -80,9 +80,14 @@ class MyApp(App):
         self.action_switch()
 
     async def action_delete_task(self) -> None:
+        if self.main_v.table.empty:
+            return
         self.operation = Operation.delete
         await self.main_v.table.focus()
-        self.main_v.message.update("Select the task and press [b]ENTER[/].")
+        self.main_v.message.update(
+            "[b]Deleting[/]:\n"
+            "Select the task and press [b]ENTER[/]."
+        )
 
     async def delete_task(self, task: str) -> None:
         db.delete_task(task)
@@ -92,9 +97,14 @@ class MyApp(App):
         self.operation = Operation.none
 
     async def action_start_existing_task(self) -> None:
+        if self.main_v.table.empty:
+            return
         self.operation = Operation.start
         await self.main_v.table.focus()
-        self.main_v.message.update("Select the task and press [b]ENTER[/].")
+        self.main_v.message.update(
+            "[b]Starting[/]:\n"
+            "Select the task and press [b]ENTER[/]."
+        )
 
     async def start_existing_task(self, task: str) -> None:
         self.main_v.input_text.content = task

@@ -56,6 +56,10 @@ class TimeTable(Fwidget):
         self.len = len(self.data)
         self.refresh()
 
+    @property
+    def empty(self) -> bool:
+        return self.len == 0
+
     def render(self) -> RenderableType:
         table = Table(
             box=None,
