@@ -20,6 +20,9 @@ class InputText(Fwidget):
         self.border_style = styles["INPUT_BORDER_BAD"]
         self.style = styles["INPUT_LOST_FOCUS"]
 
+    def _clear_content(self) -> None:
+        self.content = ""
+
     def on_key(self, event: events.Key) -> None:
         if event.key == "ctrl+h":
             if self.content:
@@ -33,7 +36,7 @@ class InputText(Fwidget):
         self.refresh()
 
     def on_focus(self, event: events.Focus) -> None:
-        self.content = ""
+        self._clear_content()
 
     def render(self) -> RenderableType:
         if self.has_focus:

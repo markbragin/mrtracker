@@ -9,7 +9,7 @@ from ..styles import styles
 
 
 class Footer(Widget):
-    def __init__(self) -> None:
+    def __init__(self, ) -> None:
         super().__init__(name="Footer")
         self._key_text: Union[Text, None] = None
 

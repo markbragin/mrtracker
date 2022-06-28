@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from rich.console import RenderableType
 from rich.table import Table
 from rich.panel import Panel
@@ -9,8 +11,8 @@ from ..stopwatch import Stopwatch as time
 
 
 class TimeTable(Fwidget):
-    def __init__(self):
-        super().__init__(name="TimeTable")
+    def __init__(self, name: str | None = "TimeTable"):
+        super().__init__(name=name)
         self.collect_data()
 
     def collect_data(self) -> None:

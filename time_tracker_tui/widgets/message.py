@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from textual.reactive import Reactive
 from textual.widget import Widget
 from rich.align import Align
@@ -11,8 +13,9 @@ class Message(Widget):
     content: Reactive[str] = Reactive("")
     error: Reactive[bool] = Reactive(False)
 
-    def __init__(self, msg: str = "Welcome to time tracker") -> None:
-        super().__init__(name="Message")
+    def __init__(self, name: str | None = "Message",
+                 msg: str = "Welcome to time tracker") -> None:
+        super().__init__(name=name)
         self.content = msg
 
     def update(self, msg: str, error: bool = False):

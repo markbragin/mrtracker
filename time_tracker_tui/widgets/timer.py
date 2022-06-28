@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from rich.align import Align
 from rich.console import RenderableType
 from rich.panel import Panel
@@ -8,8 +10,8 @@ from ..styles import styles
 
 
 class Timer(Fwidget):
-    def __init__(self) -> None:
-        super().__init__(name="Timer")
+    def __init__(self, name: str | None = "Timer") -> None:
+        super().__init__(name=name)
         self.timer = Stopwatch()
 
     async def on_mount(self):
