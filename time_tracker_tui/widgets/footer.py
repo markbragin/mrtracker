@@ -8,7 +8,7 @@ from textual.widgets import Static
 from ..styles import styles
 
 
-class Footer(Widget):
+class Footer(Widget, can_focus=False):
     def __init__(self, ) -> None:
         super().__init__(name="Footer")
         self._key_text: Union[Text, None] = None

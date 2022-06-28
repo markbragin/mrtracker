@@ -6,6 +6,7 @@ from rich.panel import Panel
 from rich.text import Text
 from textual.reactive import Reactive
 from textual import events
+from textual.reactive import watch
 
 from ..fwidget import Fwidget
 from ..styles import styles
@@ -20,25 +21,33 @@ class InputText(Fwidget):
         self.border_style = styles["INPUT_BORDER_BAD"]
         self.style = styles["INPUT_LOST_FOCUS"]
 
-    def _clear_content(self) -> None:
-        self.content = ""
+    async def on_mount(self) -> None:
+        watch(self.app, "blocked", self.set_can_focus)
 
-    def on_key(self, event: events.Key) -> None:
+    async def set_can_focus(self, blocked: bool) -> None:
+        self.can_focus = False if blocked else True
+
+    async def on_key(self, event: events.Key) -> None:
         if event.key == "ctrl+h":
             if self.content:
                 self.content = self.content[:-1]
-        elif event.key in ["enter"] or "ctrl+" in event.key:
+        elif "ctrl+" in event.key:
             return
+        elif event.key == "enter":
+            await self.app.run_new_task()
         elif event.key == "escape":
-            self._clear_content()
+            self.clear_content()
         else:
             self.content += event.key
             event.stop()
 
         self.refresh()
 
+    def clear_content(self) -> None:
+        self.content = ""
+
     def on_focus(self, event: events.Focus) -> None:
-        self._clear_content()
+        self.clear_content()
 
     def render(self) -> RenderableType:
         if self.has_focus:

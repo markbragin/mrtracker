@@ -4,6 +4,7 @@ from rich.console import RenderableType
 from rich.table import Table
 from rich.panel import Panel
 from textual import events
+from textual.reactive import watch
 
 from .. import db
 from ..fwidget import Fwidget
@@ -15,6 +16,12 @@ class TimeTable(Fwidget):
     def __init__(self, name: str | None = "TimeTable"):
         super().__init__(name=name)
         self.collect_data()
+
+    async def on_mount(self) -> None:
+        watch(self.app, "blocked", self.set_can_focus)
+
+    async def set_can_focus(self, blocked: bool) -> None:
+        self.can_focus = False if blocked else True
 
     def on_key(self, event: events.Key) -> None:
         if event.key in ["j", "down"]:

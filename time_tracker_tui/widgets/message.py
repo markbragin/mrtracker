@@ -8,7 +8,7 @@ from rich.panel import Panel
 from ..styles import styles
 
 
-class Message(Widget):
+class Message(Widget, can_focus=False):
 
     content: Reactive[str] = Reactive("")
     error: Reactive[bool] = Reactive(False)
