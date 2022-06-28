@@ -108,10 +108,16 @@ def delete_task(task: str) -> None:
     conn.commit()
 
 
-try:
-    os.mkdir(USER_DATA_DIR)
-except FileExistsError:
-    pass
+def _create_dirs(path: str) -> None:
+    if not os.path.exists(path):
+        _create_dirs(os.path.dirname(path))
+    try:
+        os.mkdir(path)
+    except FileExistsError:
+        pass
+
+
+_create_dirs(USER_DATA_DIR)
 
 conn = sqlite3.connect(os.path.join(USER_DATA_DIR, DB_NAME))
 cur = conn.cursor()
