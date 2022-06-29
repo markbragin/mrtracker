@@ -1,5 +1,4 @@
 from __future__ import annotations
-from webbrowser import Opera
 
 from rich.console import RenderableType
 from rich.table import Table
@@ -38,7 +37,7 @@ class TimeTable(Fwidget):
             self._next_item()
         elif event.key in ["k", "up"]:
             self._prev_item()
-        elif event.key == "d":
+        elif event.key == "ctrl+d":
             await self.app.delete_task(self._data[self._pos][0])
             self._delete_row(self._pos)
         elif event.key == "enter":

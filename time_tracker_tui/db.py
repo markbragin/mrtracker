@@ -44,7 +44,7 @@ def _create_today_table() -> None:
             "CREATE TABLE tt1 AS "
             "SELECT s.task, sum(s.time) as today "
             f"FROM {table_name} s "
-            "WHERE s.date = date('now') "
+            "WHERE s.date = date('now', 'localtime') "
             "GROUP BY s.task"
     )
     conn.commit()
