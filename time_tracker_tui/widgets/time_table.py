@@ -11,54 +11,64 @@ from .. import db
 from ..fwidget import Fwidget
 from ..styles import styles
 from ..stopwatch import Stopwatch as time
-from ..operation import Operation
 
 
 class TimeTable(Fwidget):
 
-    data: Reactive[list[tuple]]
-    pos: Reactive[int]
+    _data: Reactive[list[tuple]]
+    _pos: Reactive[int] = Reactive(-1)
+    _len: Reactive[int] = Reactive(0)
 
     def __init__(self, name: str | None = "TimeTable"):
         super().__init__(name=name)
         self.collect_data()
+
+    async def on_mount(self) -> None:
+        self.watch("_len", self.block)
+
+    async def block(self, length: int) -> None:
+        self.can_focus = True if length else False
+
+    @property
+    def pos(self) -> int:
+        return self._pos
+
+    @property
+    def empty(self) -> bool:
+        return self._len == 0
 
     async def on_key(self, event: events.Key) -> None:
         if event.key in ["j", "down"]:
             self._next_item()
         elif event.key in ["k", "up"]:
             self._prev_item()
+        elif event.key == "d":
+            await self.app.delete_task(self._data[self._pos][0])
+            await self._unfocus()
         elif event.key == "enter":
-            if self.app.operation == Operation.delete:
-                await self.app.delete_task(self.data[self.pos][0])
-            elif self.app.operation == Operation.start:
-                await self.app.start_existing_task(self.data[self.pos][0])
+            await self.app.start_existing_task(self._data[self._pos][0])
             await self._unfocus()
         self.refresh()
 
     def _next_item(self) -> None:
-        if self.pos < self.len - 1:
-            self.pos += 1
+        if self._pos < self._len - 1:
+            self._pos += 1
 
     def _prev_item(self) -> None:
-        if self.pos > 0:
-            self.pos -= 1
+        if self._pos > 0:
+            self._pos -= 1
 
     def on_focus(self, event: events.Focus) -> None:
-        self.pos = 0
+        self._pos = 0
 
     def on_blur(self, event: events.Focus) -> None:
-        self.pos = -1
+        self._pos = -1
 
     def collect_data(self) -> None:
-        self.data = db.fetch_full_info()
-        self.pos = -1
-        self.len = len(self.data)
+        self._data = db.fetch_full_info()
+        self._pos = -1
+        self._len = len(self._data)
         self.refresh()
-
-    @property
-    def empty(self) -> bool:
-        return self.len == 0
 
     def render(self) -> RenderableType:
         table = Table(
@@ -74,8 +84,8 @@ class TimeTable(Fwidget):
         table.add_column(header="This month")
         table.add_column(header="Total")
 
-        for id, row in enumerate(self.data):
-            selected_style = "reverse" if id == self.pos else ""
+        for id, row in enumerate(self._data):
+            selected_style = "reverse" if id == self._pos else ""
             table.add_row(
                 f"{id + 1}",
                 row[0],

@@ -14,7 +14,7 @@ from ..styles import styles
 
 class InputText(Fwidget):
 
-    content: Reactive[str] = Reactive("")
+    _content: Reactive[str] = Reactive("")
 
     def __init__(self, name: str | None = "InputText") -> None:
         super().__init__(name=name)
@@ -27,10 +27,21 @@ class InputText(Fwidget):
     async def block(self, blocked_input: bool) -> None:
         self.can_focus = False if blocked_input else True
 
+    @property
+    def content(self) -> str:
+        return self._content
+
+    @content.setter
+    def content(self, new_content) -> None:
+        self._content = new_content
+
+    def clear_content(self) -> None:
+        self._content = ""
+
     async def on_key(self, event: events.Key) -> None:
         if event.key == "ctrl+h":
-            if self.content:
-                self.content = self.content[:-1]
+            if self._content:
+                self._content = self.content[:-1]
             event.stop()
         elif "ctrl+" in event.key:
             return
@@ -40,22 +51,19 @@ class InputText(Fwidget):
         elif event.key == "escape":
             self.clear_content()
         else:
-            self.content += event.key
+            self._content += event.key
             event.stop()
-
-    def clear_content(self) -> None:
-        self.content = ""
 
     def on_focus(self, event: events.Focus) -> None:
         self.clear_content()
 
     def render(self) -> RenderableType:
-        if self.has_focus:
+        if self._has_focus:
             self.style = styles["INPUT_HAS_FOCUS"]
         else:
             self.style = styles["INPUT_LOST_FOCUS"]
 
-        if self.content:
+        if self._content:
             rendr = Align.center(Text(self.content))
             self.border_style = styles["INPUT_BORDER_GOOD"]
         else:

@@ -12,7 +12,7 @@ from ..styles import styles
 
 class Timer(Widget, can_focus=False):
 
-    running: Reactive[bool] = Reactive(False)
+    _working: Reactive[bool] = Reactive(False)
 
     def __init__(self, name: str | None = "Timer") -> None:
         super().__init__(name=name)
@@ -36,7 +36,7 @@ class Timer(Widget, can_focus=False):
         self.timer.restart()
 
     def render(self) -> RenderableType:
-        self.running = self.timer.on
+        self._working = self.timer.on
         self.panel = Panel(
             Align.center(
                 self.time_str,

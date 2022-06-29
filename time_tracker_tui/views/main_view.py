@@ -8,7 +8,7 @@ from ..widgets.footer import Footer
 from ..widgets.input_text import InputText
 from ..widgets.timer import Timer
 from ..widgets.time_table import TimeTable
-from ..widgets.message import Message
+from ..widgets.info import Info
 from ..styles import styles
 
 
@@ -19,7 +19,7 @@ class MainView(GridView):
         self.footer = Footer()
         self.input_text = InputText()
         self.timer = Timer()
-        self.message = Message()
+        self.info = Info()
         self.table = TimeTable()
         self.t_scroll = ScrollView(self.table)
 
@@ -35,7 +35,7 @@ class MainView(GridView):
             header="left-start|right-end,header",
             input_text="left,r1",
             focus="left,r2",
-            message="left,r3",
+            info="left,r3",
             table="right,header-end|footer-start",
             footer="left-start|right-end,footer",
         )
@@ -43,7 +43,7 @@ class MainView(GridView):
             header=self.header,
             input_text=self.input_text,
             focus=self.timer,
-            message=self.message,
+            info=self.info,
             table=self.t_scroll,
             footer=self.footer,
         )

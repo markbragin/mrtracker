@@ -9,8 +9,8 @@ styles = {
     "INPUT_BORDER_BAD": "red",
     "FOCUS": "white",
     "FOCUS_BORDER": "blue",
-    "MESSAGE": "blue",
-    "MESSAGE_ERROR": "red",
+    "INFO": "blue",
+    "INFO_ERROR": "red",
     "FOOTER": "white on black",
     "FOOTER_BORDER": ""
 }
