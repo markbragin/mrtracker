@@ -5,13 +5,11 @@ from textual.reactive import watch, Reactive
 
 from . import db
 from .views.main_view import MainView
-from .operation import Operation
 
 
 class MyApp(App):
 
     blocked_input: Reactive[bool] = Reactive(False)
-    operation: Reactive[Operation] = Reactive(Operation.none)
 
     async def on_load(self) -> None:
         await self.bind("ctrl+c", "quit", "exit")
@@ -83,7 +81,6 @@ class MyApp(App):
 
     async def delete_task(self, task: str) -> None:
         db.delete_task(task)
-        self.main_v.table.collect_data()
         await self.main_v.t_scroll.update(self.main_v.table)
         self.main_v.info.update(f"[b green]{task}[/] has been deleted.")
 

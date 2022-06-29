@@ -30,10 +30,6 @@ class TimeTable(Fwidget):
         self.can_focus = True if length else False
 
     @property
-    def pos(self) -> int:
-        return self._pos
-
-    @property
     def empty(self) -> bool:
         return self._len == 0
 
@@ -44,11 +40,16 @@ class TimeTable(Fwidget):
             self._prev_item()
         elif event.key == "d":
             await self.app.delete_task(self._data[self._pos][0])
-            await self._unfocus()
+            self._delete_row(self._pos)
         elif event.key == "enter":
             await self.app.start_existing_task(self._data[self._pos][0])
             await self._unfocus()
         self.refresh()
+
+    def _delete_row(self, pos: int) -> None:
+            self._data.pop(self._pos)
+            self._len -= 1
+            self._prev_item()
 
     def _next_item(self) -> None:
         if self._pos < self._len - 1:
