@@ -7,6 +7,7 @@ from rich.panel import Panel
 from rich.console import RenderableType
 
 from ..styles import styles
+from ..__about__ import __version__
 
 
 class Info(Widget, can_focus=False):
@@ -15,7 +16,7 @@ class Info(Widget, can_focus=False):
     _error: Reactive[bool] = Reactive(False)
 
     def __init__(self, name: str | None = "Info",
-                 msg: str = "Welcome to time tracker.") -> None:
+                 msg: str = f"Time tracker v{__version__}") -> None:
         super().__init__(name=name)
         self._content = msg
 

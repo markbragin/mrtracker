@@ -1,8 +1,8 @@
-from .app import MyApp
+from .app import TimeTracker
 
 
 def main():
-    MyApp.run(title="Time tracker", log="textual.log")
+    TimeTracker.run(title="Time tracker", log="textual.log")
 
 if __name__ == "__main__":
     main()
