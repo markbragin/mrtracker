@@ -15,7 +15,7 @@ from ..stopwatch import Stopwatch as time
 class TimeTable(Fwidget):
 
     _data: Reactive[list[tuple]]
-    _pos: Reactive[int] = Reactive(-1)
+    _highlighted_pos: Reactive[int] = Reactive(-1)
     _len: Reactive[int] = Reactive(0)
 
     def __init__(self, name: str | None = "TimeTable"):
@@ -38,35 +38,37 @@ class TimeTable(Fwidget):
         elif event.key in ["k", "up"]:
             self._prev_item()
         elif event.key == "ctrl+d":
-            await self.app.delete_task(self._data[self._pos][0])
-            self._delete_row(self._pos)
+            await self.app.delete_task(self._data[self._highlighted_pos][0])
+            self._delete_row(self._highlighted_pos)
         elif event.key == "enter":
-            await self.app.start_existing_task(self._data[self._pos][0])
+            await self.app.start_existing_task(
+                self._data[self._highlighted_pos][0]
+            )
             await self._unfocus()
         self.refresh()
 
     def _delete_row(self, pos: int) -> None:
-            self._data.pop(self._pos)
+            self._data.pop(self._highlighted_pos)
             self._len -= 1
             self._prev_item()
 
     def _next_item(self) -> None:
-        if self._pos < self._len - 1:
-            self._pos += 1
+        if self._highlighted_pos < self._len - 1:
+            self._highlighted_pos += 1
 
     def _prev_item(self) -> None:
-        if self._pos > 0:
-            self._pos -= 1
+        if self._highlighted_pos > 0:
+            self._highlighted_pos -= 1
 
     def on_focus(self, event: events.Focus) -> None:
-        self._pos = 0
+        self._highlighted_pos = 0
 
     def on_blur(self, event: events.Focus) -> None:
-        self._pos = -1
+        self._highlighted_pos = -1
 
     def collect_data(self) -> None:
         self._data = db.fetch_full_info()
-        self._pos = -1
+        self._highlighted_pos = -1
         self._len = len(self._data)
         self.refresh()
 
@@ -85,7 +87,7 @@ class TimeTable(Fwidget):
         table.add_column(header="Total")
 
         for id, row in enumerate(self._data):
-            selected_style = "reverse" if id == self._pos else ""
+            selected_style = "reverse" if id == self._highlighted_pos else ""
             table.add_row(
                 f"{id + 1}",
                 row[0],

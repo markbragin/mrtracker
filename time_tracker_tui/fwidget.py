@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from textual.reactive import Reactive
 from textual.widget import Widget
 from textual import events
