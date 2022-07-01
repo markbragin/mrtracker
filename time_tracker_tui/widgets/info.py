@@ -15,8 +15,11 @@ class Info(Widget, can_focus=False):
     _content: Reactive[str] = Reactive("")
     _error: Reactive[bool] = Reactive(False)
 
-    def __init__(self, name: str | None = "Info",
-                 msg: str = f"Time tracker v{__version__}") -> None:
+    def __init__(
+        self,
+        name: str | None = "Info",
+        msg: str = f"Time tracker v{__version__}\n[blue]ctrl+h[/] - show help"
+    ) -> None:
         super().__init__(name=name)
         self._content = msg
 

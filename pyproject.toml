@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "time_tracker_tui"
-version = "0.3.1"
+version = "0.3.4"
 description = "Simple tui time tracker"
 authors = ["Mark Bragin <m4rk.brag1n@gmail.com>"]
 
