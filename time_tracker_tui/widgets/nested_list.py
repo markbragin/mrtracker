@@ -15,12 +15,11 @@ class NestedList(TreeControl):
         super().__init__(label, data, name=name, padding=padding)
         self._tree.hide_root = True
         self.show_cursor = True
-        self._tree.expanded = True
 
     async def add_child(self, label: TextType, data: RenderableType) -> None:
         await self.add(self.cursor, label=label, data=data)
         await self.nodes[self.cursor].expand()
-        await self._go_to_latest_child()
+        await self.go_to_latest_child()
 
     async def add_sibling(self, label: TextType, data: RenderableType) -> None:
         node = self.nodes[self.cursor]
@@ -33,7 +32,7 @@ class NestedList(TreeControl):
         parent = node.parent
         if parent:
             if node.next_sibling:
-                await self._go_to_next_sibling()
+                await self.go_to_next_sibling()
             else:
                 await self.cursor_up()
             parent.children.remove(node)
@@ -41,39 +40,53 @@ class NestedList(TreeControl):
 
         self.refresh(layout=True)
 
-    async def _go_to_latest_child(self) -> None:
+    async def go_to_latest_child(self) -> None:
         self._remove_hl()
+        await self._cur_to_latest_child()
+        self._highlight()
+
+    async def _cur_to_latest_child(self) -> None:
         node_id = self.id
         while self.cursor != node_id:
             await self.cursor_down()
-        self._highlight()
 
     async def go_to_parent(self) -> None:
+        self._remove_hl()
+        await self._cur_to_parent()
+        self._highlight()
+
+    async def _cur_to_parent(self) -> None:
         node = self.nodes[self.cursor]
         parent = node.parent
         if parent is self.root:
-            return 
+            return
 
-        self._remove_hl()
         if parent:
             while self.cursor != parent.id:
                 await self.cursor_up()
+
+    async def go_to_next_sibling(self) -> None:
+        self._remove_hl()
+        await self._cur_to_next_sibling()
         self._highlight()
 
-    async def _go_to_next_sibling(self) -> None:
-        self._remove_hl()
-        sibling = self.nodes[self.cursor].next_sibling
+    async def _cur_to_next_sibling(self) -> None:
+        node = self.nodes[self.cursor]
+        sibling = node.next_sibling
         if sibling:
             while self.cursor != sibling.id:
                 await self.cursor_down()
-        self._highlight()
 
-    async def cur_down(self) -> None:
+    async def cur_to_root(self) -> None:
+        while self.cursor != self.root.id:
+            await self.cursor_up()
+
+    async def go_down(self) -> None:
         self._remove_hl()
         await self.cursor_down()
         self._highlight()
 
-    async def cur_up(self) -> None:
+    async def go_up(self) -> None:
         node = self.nodes[self.cursor]
         if node.previous_node is self.root:
             return
