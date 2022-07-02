@@ -28,7 +28,7 @@ def _create_total_table() -> None:
             "SELECT s.task_id, sum(s.time) as total "
             "FROM sessions s "
             "GROUP BY s.task_id "
-            "ORDER BY s.id"
+            "ORDER BY s.id DESC"
     )
     conn.commit()
 
@@ -86,7 +86,7 @@ def fetch_full_info() -> List[Tuple]:
         "LEFT OUTER JOIN links l "
         "ON tt0.task_id = l.task_id left "
         "LEFT OUTER JOIN tasks t "
-        "ON tt0.task_id = t.id"
+        "ON tt0.task_id = t.id "
     )
     result = cur.fetchall()
     _drop_temp_tables()
