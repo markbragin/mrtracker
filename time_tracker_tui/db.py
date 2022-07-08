@@ -2,6 +2,7 @@ import os
 from typing import List, Tuple
 
 import sqlite3
+from loguru import logger
 from platformdirs import user_data_dir
 
 from .definition import ROOT_PKG_DIR
@@ -76,8 +77,7 @@ def fetch_full_info() -> List[Tuple]:
     _create_today_table()
     _create_month_table()
     cur.execute(
-        "SELECT tt0.task_id, l.parent_id, "
-        "t.name, tt1.today, tt2.month, tt0.total "
+        "SELECT t.id, l.parent_id, t.name, tt1.today, tt2.month, tt0.total "
         "FROM tasks t "
         "LEFT OUTER JOIN tt0 "
         "ON t.id = tt0.task_id "
@@ -87,6 +87,7 @@ def fetch_full_info() -> List[Tuple]:
         "ON t.id = tt2.task_id "
         "LEFT OUTER JOIN links l "
         "ON t.id = l.task_id "
+        "WHERE id > 0"
     )
     result = cur.fetchall()
     _drop_temp_tables()
@@ -110,9 +111,20 @@ def add_task(task: str, parent_id: int = 0) -> None:
     conn.commit()
 
 
-def delete_task(task: str) -> None:
-    cur.execute(f"DELETE FROM tasks WHERE name = '{task}'")
+def delete_tasks(*tasks: int) -> None:
+    task_ids = ", ".join(str(x) for x in tasks)
+    cur.execute(f"DELETE FROM tasks WHERE id in ({task_ids})")
     conn.commit()
+
+
+def rename_task(id: int, new_name: str) -> None:
+    cur.execute(f"UPDATE tasks SET name = '{new_name}' WHERE id={id}")
+    conn.commit()
+
+
+def get_max_task_id() -> int:
+    cur.execute("SELECT MAX(id) from tasks")
+    return cur.fetchone()[0]
 
 
 def _create_dirs(path: str) -> None:
