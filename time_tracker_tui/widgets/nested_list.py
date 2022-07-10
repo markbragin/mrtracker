@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from rich.padding import PaddingDimensions
 from rich.text import TextType
+from textual.app import events
 from textual.widgets import NodeID, TreeControl, TreeNode
 
 
@@ -94,3 +95,12 @@ class NestedList(TreeControl):
         while self.cursor != node.id:
             await self.cursor_up()
             await self.toggle_folding()
+
+    async def key_down(self, event: events.Key) -> None:
+        pass
+
+    async def key_up(self, event: events.Key) -> None:
+        pass
+
+    async def key_enter(self, event: events.Key) -> None:
+        pass

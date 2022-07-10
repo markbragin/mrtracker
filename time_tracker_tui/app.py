@@ -9,6 +9,7 @@ from textual.views._grid_view import GridView
 from . import db
 from .views.help_view import HelpView
 from .views.main_view import MainView
+from .widgets.in_app_logger import ialogger
 
 
 class TimeTracker(App):
@@ -47,7 +48,7 @@ class TimeTracker(App):
         self.main_v.tasklist.blocked = working
 
     async def action_quit(self) -> None:
-        self.main_v.ialogger.update("[i]Saving data...[/]")
+        ialogger.update("[i]Saving data...[/]")
         self.save_data()
         await self.shutdown()
 
@@ -67,14 +68,14 @@ class TimeTracker(App):
 
     def action_switch_timer(self) -> None:
         if not self.main_v.tasklist.current_task:
-            self.main_v.ialogger.update(
+            ialogger.update(
                 "Error. Run the timer first.", error=True
             )
             return
         if self.main_v.timer.timer.paused:
-            self.main_v.ialogger.update("Paused")
+            ialogger.update("Paused")
         else:
-            self.main_v.ialogger.update("Running")
+            ialogger.update("Running")
         self.main_v.timer.switch_timer()
 
     async def action_save_session(self) -> None:
@@ -82,7 +83,7 @@ class TimeTracker(App):
             await self.main_v.tasklist.add_time(self.main_v.timer.time)
         self.main_v.timer.restart_timer()
         self.main_v.tasklist.current_task = None
-        self.main_v.ialogger.update("Your data saved. Timer reset.")
+        ialogger.update("Your data saved. Timer reset.")
 
     async def action_show_help(self) -> None:
         self.current_view = self.help_v

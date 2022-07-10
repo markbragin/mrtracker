@@ -148,9 +148,9 @@ class TaskList(NestedList):
             self._toggle_mode()
             entry = self.nodes[self.cursor].data
             entry.content = entry.name
-        elif key == "j":
+        elif key in ["j", "down"]:
             await self.go_down()
-        elif key == "k":
+        elif key in ["k", "up"]:
             await self.go_up()
         elif key == "z":
             await self.toggle_folding()
@@ -168,6 +168,7 @@ class TaskList(NestedList):
             await self.add_sibling_task()
         elif key == "x":
             await self.delete_task()
+        event.stop()
 
     def _handle_starting_task(self) -> None:
         if self.blocked:

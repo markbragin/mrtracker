@@ -7,7 +7,7 @@ from platformdirs import user_data_dir
 from .definition import ROOT_PKG_DIR
 
 
-DB_NAME = "test.db"
+DB_NAME = "time.db"
 USER_DATA_DIR = user_data_dir("time-tracker-tui")
 
 
@@ -19,7 +19,8 @@ def _init_db() -> None:
 
 
 def _check_db_exists() -> bool:
-    return os.path.exists(USER_DATA_DIR)
+    cur.execute("SELECT name FROM sqlite_master WHERE type='table'")
+    return cur.fetchone()
 
 
 def _create_total_table() -> None:
