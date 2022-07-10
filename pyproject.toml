@@ -5,7 +5,7 @@ description = "A Simple TUI time tracker"
 authors = ["Mark Bragin <m4rk.brag1n@gmail.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.10"
 textual = "^0.1.18"
 platformdirs = "^2.5.2"
 
