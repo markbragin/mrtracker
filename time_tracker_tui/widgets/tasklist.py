@@ -168,7 +168,6 @@ class TaskList(NestedList):
             await self.add_sibling_task()
         elif key == "x":
             await self.delete_task()
-        event.stop()
 
     def _handle_starting_task(self) -> None:
         if self.blocked:
