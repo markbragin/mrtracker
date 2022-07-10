@@ -1,22 +1,22 @@
 from __future__ import annotations
-from rich.align import Align
 
+from rich.align import Align
+from rich.panel import Panel
+from rich.table import Table
 from textual.views._grid_view import GridView
 from textual.widgets import Static
-from rich.table import Table
-from rich.panel import Panel
 
 
 keys = {
     "escape": "reset focus/show main menu",
-    "t":      "switch focus to the table",
-    "enter":  "start task (table)",
+    "t": "switch focus to the table",
+    "enter": "start task (table)",
     "ctrl+d": "delete task (table)",
     "ctrl+n": "create new task",
     "ctrl+p": "resume/pause timer",
     "ctrl+r": "save + reset timer",
     "ctrl+q": "exit",
-    "ctrl+h": "show help"
+    "ctrl+h": "show help",
 }
 
 
@@ -24,8 +24,11 @@ class HelpView(GridView):
     def __init__(self, name: str | None = "HelpView") -> None:
         super().__init__(name=name)
         self.height = len(keys) + 2
-        self.width = max([len(x) for x in keys.keys()]) + \
-            max([len(x) for x in keys.values()]) + 8
+        self.width = (
+            max([len(x) for x in keys.keys()])
+            + max([len(x) for x in keys.values()])
+            + 8
+        )
 
     async def on_mount(self) -> None:
         self.grid.add_column("left")

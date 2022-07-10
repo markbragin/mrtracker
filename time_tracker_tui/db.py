@@ -1,8 +1,7 @@
 import os
+import sqlite3
 from typing import List, Tuple
 
-import sqlite3
-from loguru import logger
 from platformdirs import user_data_dir
 
 from .definition import ROOT_PKG_DIR
@@ -104,8 +103,9 @@ def add_session(task_id: int, date: str, time: int) -> None:
 
 def add_task(task: str, parent_id: int = 0) -> None:
     cur.execute(f"INSERT INTO tasks (name) VALUES ('{task}')")
-    cur.execute("SELECT id from tasks "
-                "WHERE id = (SELECT MAX(id) from tasks)")
+    cur.execute(
+        "SELECT id from tasks " "WHERE id = (SELECT MAX(id) from tasks)"
+    )
     task_id = cur.fetchone()[0]
     cur.execute(f"INSERT INTO links VALUES ({task_id}, {parent_id})")
     conn.commit()
