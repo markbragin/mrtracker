@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 from rich.padding import PaddingDimensions
-from rich.text import Text, TextType
-from textual.widgets import NodeID, TreeControl
+from rich.text import TextType
+from textual.widgets import NodeID, TreeControl, TreeNode
 
 
 class NestedList(TreeControl):
@@ -57,6 +59,38 @@ class NestedList(TreeControl):
             while self.cursor != sibling.id:
                 await self.cursor_down()
 
+    async def _cur_back_to(self, node: TreeNode) -> None:
+        while self.cursor != node.id:
+            await self.cursor_up()
+
     async def _cur_to_root(self) -> None:
         self.cursor = NodeID(0)
         self.cursor_line = 0
+
+    async def toggle_folding(self) -> None:
+        await self.nodes[self.cursor].toggle()
+
+    async def toggle_folding_recursively(self) -> None:
+        if self.nodes[self.cursor].expanded:
+            await self._fold_recursively()
+        else:
+            await self._unfold_recursively()
+
+    async def _unfold_recursively(self) -> None:
+        node = self.nodes[self.cursor]
+        next_sibling = node.next_sibling
+        await node.expand()
+        while self.nodes[self.cursor].next_node is not next_sibling:
+            await self.cursor_down()
+            await self.nodes[self.cursor].expand()
+        await self._cur_back_to(node)
+
+    async def _fold_recursively(self) -> None:
+        node = self.nodes[self.cursor]
+        next_sibling = node.next_sibling
+        while self.nodes[self.cursor].next_node is not next_sibling:
+            await self.cursor_down()
+
+        while self.cursor != node.id:
+            await self.cursor_up()
+            await self.toggle_folding()
