@@ -18,8 +18,8 @@ class TimeTracker(App):
     current_view: Reactive[GridView | None] = Reactive(None)
 
     async def on_load(self) -> None:
-        for func, key in config.app_keys.items():
-            await self.bind(func, key)
+        for action, key in config.app_keys.items():
+            await self.bind(key, action)
 
     async def on_mount(self) -> None:
         self.main_v = MainView()
