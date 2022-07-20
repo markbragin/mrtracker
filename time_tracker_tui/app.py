@@ -7,10 +7,10 @@ from textual.reactive import Reactive, events, watch
 from textual.views._grid_view import GridView
 
 from . import db
+from .config import config
 from .views.help_view import HelpView
 from .views.main_view import MainView
 from .widgets.in_app_logger import ialogger
-from .config import config
 
 
 class TimeTracker(App):
@@ -66,9 +66,7 @@ class TimeTracker(App):
 
     def action_switch_timer(self) -> None:
         if not self.main_v.tasklist.current_task:
-            ialogger.update(
-                "Error. Run the timer first.", error=True
-            )
+            ialogger.update("Error. Run the timer first.", error=True)
             return
         if self.main_v.timer.timer.paused:
             ialogger.update("Paused")
