@@ -145,9 +145,7 @@ class TaskList(NestedList):
         elif self.blocked:
             return
         elif key == "r":
-            self._toggle_mode()
-            entry = self.nodes[self.cursor].data
-            entry.content = entry.name
+            self.rename_task()
         elif key in ["j", "down"]:
             await self.go_down()
         elif key in ["k", "up"]:
@@ -187,20 +185,22 @@ class TaskList(NestedList):
     def _toggle_mode(self) -> None:
         self._mode = Mode.INSERT if self._mode == Mode.NORMAL else Mode.NORMAL
 
+    def rename_task(self) -> None:
+        if self.cursor in [self.root.id, self.root.children[0].id]:
+            return
+        self._toggle_mode()
+        entry = self.nodes[self.cursor].data
+        entry.content = entry.name
+
     async def add_child(self, label: TextType, data) -> None:
-        if self.cursor is self.root.children[0]:
+        if self.cursor == self.root.children[0].id:
             return
         await super().add_child(label, data)
 
     async def add_sibling(self, label: TextType, data) -> None:
-        if self.cursor in [self.root.id, self.root.children[0]]:
+        if self.cursor in [self.root.id, self.root.children[0].id]:
             return
         await super().add_sibling(label, data)
-
-    async def add_root_child(self, label: TextType, data) -> None:
-        if self.cursor in [self.root.id, self.root.children[0]]:
-            return
-        await super().add_root_child(label, data)
 
     async def add_folder(self) -> None:
         await self.add_root_child(
