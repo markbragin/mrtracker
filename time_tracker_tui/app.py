@@ -10,6 +10,7 @@ from . import db
 from .views.help_view import HelpView
 from .views.main_view import MainView
 from .widgets.in_app_logger import ialogger
+from .config import config
 
 
 class TimeTracker(App):
@@ -17,11 +18,8 @@ class TimeTracker(App):
     current_view: Reactive[GridView | None] = Reactive(None)
 
     async def on_load(self) -> None:
-        await self.bind("ctrl+q", "quit")
-        await self.bind("escape", "reset_focus")
-        await self.bind("ctrl+p", "switch_timer")
-        await self.bind("ctrl+s", "save_session")
-        await self.bind("ctrl+h", "show_help")
+        for func, key in config.app_keys.items():
+            await self.bind(func, key)
 
     async def on_mount(self) -> None:
         self.main_v = MainView()

@@ -1,6 +1,15 @@
 {
     "bindings": {
-        "reset_focus": "escape"
+        "app": {
+            "quit": "ctrl+q",
+            "reset_focus": "escape",
+            "switch_timer": "ctrl+p",
+            "save_session": "ctrl+s",
+            "show_help": "ctrl+h"
+        },
+        "tasklist": {
+
+        }
     },
     "styles": {
         "HEADER": "cyan bold",

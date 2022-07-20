@@ -42,7 +42,8 @@ class Config:
     def read_config(self) -> None:
         with open(CONFIG_PATH, "r") as f:
             cfg = json.load(f)
-            self.bindings = cfg["bindings"]
+            self.app_keys = cfg["bindings"]["app"]
+            self.tasklist_keys = cfg["bindings"]["tasklist"]
             self.styles = cfg["styles"]
 
 
