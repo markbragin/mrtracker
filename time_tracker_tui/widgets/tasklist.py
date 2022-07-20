@@ -13,6 +13,7 @@ from ..mode import Mode
 from .entry import Entry, EntryType, generate_empty_entry
 from .in_app_logger import ialogger
 from .nested_list import NestedList
+from ..config import config
 
 
 cyrillic_layout = dict(
@@ -140,31 +141,31 @@ class TaskList(NestedList):
 
     async def handle_keypress_in_normal_mode(self, event: events.Key) -> None:
         key = event.key.translate(cyrillic_layout)
-        if event.key == "enter":
+        if event.key in config.tasklist_keys["start_task"]:
             self._handle_starting_task()
         elif self.blocked:
             return
-        elif key == "r":
+        elif key in config.tasklist_keys["rename_task"]:
             self.rename_task()
-        elif key in ["j", "down"]:
+        elif key in config.tasklist_keys["go_down"]:
             await self.go_down()
-        elif key in ["k", "up"]:
+        elif key in config.tasklist_keys["go_up"]:
             await self.go_up()
-        elif key == "z":
+        elif key in config.tasklist_keys["toggle_folding"]:
             await self.toggle_folding()
-        elif key == "Z":
+        elif key in config.tasklist_keys["toggle_folding_recursively"]:
             await self.toggle_folding_recursively()
-        elif key == "p":
+        elif key in config.tasklist_keys["go_to_parent"]:
             await self.go_to_parent()
-        elif key == "P":
+        elif key in config.tasklist_keys["go_to_parent_folder"]:
             await self.go_to_parent_folder()
-        elif key == "n":
+        elif key in config.tasklist_keys["add_folder"]:
             await self.add_folder()
-        elif key == "a":
+        elif key in config.tasklist_keys["add_child_task"]:
             await self.add_child_task()
-        elif key == "s":
+        elif key in config.tasklist_keys["add_sibling_task"]:
             await self.add_sibling_task()
-        elif key == "x":
+        elif key in config.tasklist_keys["delete_task"]:
             await self.delete_task()
 
     def _handle_starting_task(self) -> None:
