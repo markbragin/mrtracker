@@ -21,7 +21,7 @@ class Logger(Widget, can_focus=False):
     ) -> None:
         super().__init__(name=name)
         self._content = (
-            f"Time tracker v{__version__}\n"
+            f"Time-control v{__version__}\n"
             + f"[{config.styles['LOGGER_HIGHLIGHT']}]"
             + f"{config.app_keys['show_help']}[/] - show help"
         )

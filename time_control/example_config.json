@@ -1,4 +1,5 @@
 {
+    "//": "Styles: https://github.com/Textualize/rich",
     "bindings": {
         "app": {
             "reset_focus": "escape",
@@ -23,17 +24,17 @@
         }
     },
     "styles": {
-        "HEADER": "cyan bold",
+        "HEADER": "bold",
         "HIGHLIGHTED_TASK": "yellow",
-        "NORMAL_TASK": "white",
-        "TASKLIST_HEADER": "magenta bold",
-        "TASKLIST_BORDER": "blue",
+        "NORMAL_TASK": "dim",
+        "TASKLIST_HEADER": "white bold",
+        "TASKLIST_BORDER": "white",
         "CURRENT_TASK_TEXT": "white",
         "CURRENT_TASK_GOOD_BORDER": "green",
         "CURRENT_TASK_BAD_BORDER": "red",
         "TIMER_TEXT": "white",
-        "TIMER_BORDER": "blue",
-        "LOGGER_BORDER": "blue",
+        "TIMER_BORDER": "white",
+        "LOGGER_BORDER": "white",
         "LOGGER_ERROR_BORDER": "red",
         "LOGGER_HIGHLIGHT": "blue"
     }

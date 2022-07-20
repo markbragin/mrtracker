@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "time_tracker_tui"
+name = "time_control"
 version = "0.4.0"
 description = "A Simple TUI time tracker"
 authors = ["Mark Bragin <m4rk.brag1n@gmail.com>"]
@@ -20,4 +20,4 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-time-tracker = "time_tracker_tui.__main__:main"
+time-control = "time_control.__main__:main"
