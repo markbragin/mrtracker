@@ -1,47 +1,34 @@
 from __future__ import annotations
 
 from rich.align import Align
-from rich.panel import Panel
 from rich.table import Table
-from textual.views._grid_view import GridView
-from textual.widgets import Static
+from textual.views._dock_view import DockView
+
+from ..config import config
+from ..widgets.simple_scrollview import SimpleScrollView
 
 
-keys = {
-    "escape": "reset focus/show main menu",
-    "t": "switch focus to the table",
-    "enter": "start task (table)",
-    "ctrl+d": "delete task (table)",
-    "ctrl+n": "create new task",
-    "ctrl+p": "resume/pause timer",
-    "ctrl+r": "save + reset timer",
-    "ctrl+q": "exit",
-    "ctrl+h": "show help",
-}
-
-
-class HelpView(GridView):
+class HelpView(DockView):
     def __init__(self, name: str | None = "HelpView") -> None:
         super().__init__(name=name)
-        self.height = len(keys) + 2
-        self.width = (
-            max([len(x) for x in keys.keys()])
-            + max([len(x) for x in keys.values()])
-            + 8
-        )
 
     async def on_mount(self) -> None:
-        self.grid.add_column("left")
-        self.grid.add_column("mid", size=self.width)
-        self.grid.add_column("right")
-        self.grid.add_row("top")
-        self.grid.add_row("mid", size=self.height)
-        self.grid.add_row("bottom")
-        self.grid.add_areas(center="mid,mid")
+        table = self.create_table()
+        await self.dock(SimpleScrollView(Align(table, "center")))
 
+    def create_table(self) -> Table:
         table = Table(show_header=False, box=None)
-        for key, descrip in keys.items():
-            table.add_row(Align(key, align="right", style="blue"), descrip)
+        table.add_row("[magenta]App keys:")
+        for descrip, key in config.app_keys.items():
+            table.add_row(
+                Align(key, "right", style="blue"), " ".join(descrip.split("_"))
+            )
+        table.add_row(end_section=True)
 
-        panel = Panel(table, expand=False)
-        self.grid.place(center=Static(panel, name="Help"))
+        table.add_row("[magenta]Tasklist keys:")
+        for descrip, keys in config.tasklist_keys.items():
+            table.add_row(
+                Align(", ".join(keys), "right", style="blue"),
+                " ".join(descrip.split("_")),
+            )
+        return table
