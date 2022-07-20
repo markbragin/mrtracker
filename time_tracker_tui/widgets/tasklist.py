@@ -101,12 +101,7 @@ class TaskList(NestedList):
             await self.cursor_up()
 
     async def on_focus(self) -> None:
-        await self.go_down()
-        await self.go_down()
         self._mode = Mode.NORMAL
-
-    async def on_blur(self) -> None:
-        await self._cur_to_root()
 
     async def on_key(self, event: events.Key) -> None:
         if self._mode == Mode.INSERT:
