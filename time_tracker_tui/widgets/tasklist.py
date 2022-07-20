@@ -41,7 +41,7 @@ class TaskList(NestedList):
         label: TextType = "TaskList",
         data=[],
         name: str | None = None,
-        padding: PaddingDimensions = (0, 1),
+        padding: PaddingDimensions = 0,
     ) -> None:
         super().__init__(label=label, data=data, name=name, padding=padding)
         self._tree.hide_root = True
