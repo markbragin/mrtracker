@@ -4,20 +4,28 @@ from rich.align import Align
 from rich.table import Table
 from textual.views._dock_view import DockView
 
-from ..config import config
+from ..config import config, CONFIG_PATH
 from ..widgets.simple_scrollview import SimpleScrollView
 
 
 class HelpView(DockView):
     def __init__(self, name: str | None = "HelpView") -> None:
         super().__init__(name=name)
+        table = self.create_table()
+        self.scrll = SimpleScrollView(Align(table, "center"))
 
     async def on_mount(self) -> None:
-        table = self.create_table()
-        await self.dock(SimpleScrollView(Align(table, "center")))
+        await self.dock(self.scrll)
 
     def create_table(self) -> Table:
         table = Table(show_header=False, box=None)
+        table.title_style = ""
+        table.show_footer = True
+        table.title = (
+            "[yellow bold]Help\n\n[/]"
+            + "To change bindings and styles edit\n"
+            + f"[dim]{CONFIG_PATH}[/]"
+        )
         table.add_row("[magenta]App keys:")
         for descrip, key in config.app_keys.items():
             table.add_row(
