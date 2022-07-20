@@ -2,13 +2,7 @@ import os
 import sqlite3
 from typing import List, Tuple
 
-from platformdirs import user_data_dir
-
-from .definition import ROOT_PKG_DIR
-
-
-DB_NAME = "time.db"
-USER_DATA_DIR = user_data_dir("time-tracker-tui")
+from .config import ROOT_PKG_DIR, DB_NAME, USER_DATA_DIR
 
 
 def _init_db() -> None:
@@ -127,17 +121,6 @@ def get_max_task_id() -> int:
     cur.execute("SELECT MAX(id) from tasks")
     return cur.fetchone()[0]
 
-
-def _create_dirs(path: str) -> None:
-    if not os.path.exists(path):
-        _create_dirs(os.path.dirname(path))
-    try:
-        os.mkdir(path)
-    except FileExistsError:
-        pass
-
-
-_create_dirs(USER_DATA_DIR)
 
 conn = sqlite3.connect(os.path.join(USER_DATA_DIR, DB_NAME))
 cur = conn.cursor()

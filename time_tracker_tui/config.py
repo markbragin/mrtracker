@@ -2,7 +2,7 @@ import json
 import os
 import shutil
 
-from platformdirs import user_config_dir
+from platformdirs import user_config_dir, user_data_dir
 
 
 ROOT_PKG_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -10,8 +10,11 @@ APP_DIR = "time-tracker-tui"
 CONFIG_FILE = "config.json"
 EXAMPLE_CONFIG_FILE = "example_config.json"
 USER_CONFIG_DIR = user_config_dir(APP_DIR)
+USER_DATA_DIR = user_data_dir(APP_DIR)
 CONFIG_PATH = os.path.join(USER_CONFIG_DIR, CONFIG_FILE)
 EXAMPLE_CONFIG_PATH = os.path.join(ROOT_PKG_DIR, EXAMPLE_CONFIG_FILE)
+
+DB_NAME = "time.db"
 
 
 def create_dirs(path: str) -> None:
@@ -43,4 +46,5 @@ class Config:
             self.styles = cfg["styles"]
 
 
+create_dirs(USER_DATA_DIR)
 config = Config()
