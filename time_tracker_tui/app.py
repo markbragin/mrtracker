@@ -36,6 +36,8 @@ class TimeTracker(App):
         await self.view.dock(view)
         if view is self.main_v:
             await self.action_reset_focus()
+        elif view is self.help_v:
+            await self.help_v.scrll.focus()
 
     def clear_screen(self) -> None:
         if isinstance(self.view.layout, DockLayout):
