@@ -1,28 +1,40 @@
 {
     "bindings": {
         "app": {
-            "quit": "ctrl+q",
             "reset_focus": "escape",
+            "quit": "ctrl+q",
             "switch_timer": "ctrl+p",
             "save_session": "ctrl+s",
             "show_help": "ctrl+h"
         },
         "tasklist": {
-
+            "start_task": ["enter"],
+            "rename_task": ["r"],
+            "go_down": ["j", "down"],
+            "go_up": ["k", "up"],
+            "toggle_folding": ["z"],
+            "toggle_folding_recursively": ["Z"],
+            "go_to_parent": ["p"],
+            "go_to_parent_folder": ["P"],
+            "add_folder": ["n"],
+            "add_child_task": ["a"],
+            "add_sibling_task": ["s"],
+            "delete_task": ["x"]
         }
     },
     "styles": {
         "HEADER": "cyan bold",
-        "TIME_TABLE_HEADER": "magenta bold",
-        "TIME_TABLE_TEXT": "white",
-        "TIME_TABLE_BORDER": "blue",
-        "INPUT_HAS_FOCUS": "white on black",
-        "INPUT_LOST_FOCUS": "white",
-        "INPUT_BORDER_GOOD": "green",
-        "INPUT_BORDER_BAD": "red",
-        "FOCUS": "white",
-        "FOCUS_BORDER": "blue",
-        "LOGGER": "blue",
-        "LOGGER_ERROR": "red"
+        "HIGHLIGHTED_TASK": "yellow",
+        "NORMAL_TASK": "white",
+        "TASKLIST_HEADER": "magenta bold",
+        "TASKLIST_BORDER": "blue",
+        "CURRENT_TASK_TEXT": "white",
+        "CURRENT_TASK_GOOD_BORDER": "green",
+        "CURRENT_TASK_BAD_BORDER": "red",
+        "TIMER_TEXT": "white",
+        "TIMER_BORDER": "blue",
+        "LOGGER_BORDER": "blue",
+        "LOGGER_ERROR_BORDER": "red",
+        "LOGGER_HIGHLIGHT": "blue"
     }
 }

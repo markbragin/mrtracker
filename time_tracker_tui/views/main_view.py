@@ -3,7 +3,7 @@ from __future__ import annotations
 from textual.views._grid_view import GridView
 from textual.widgets import Header
 
-from ..styles import styles
+from ..config import config
 from ..widgets.current_task import CurrentTask
 from ..widgets.in_app_logger import ialogger
 from ..widgets.simple_scrollview import SimpleScrollView
@@ -14,7 +14,7 @@ from ..widgets.timer import Timer
 class MainView(GridView):
     def __init__(self, name: str | None = "MainView") -> None:
         super().__init__(name=name)
-        self.header = Header(style=styles["HEADER"])
+        self.header = Header(style=config.styles["HEADER"])
         self.current_task = CurrentTask()
         self.timer = Timer()
         self.ialogger = ialogger

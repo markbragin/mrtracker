@@ -9,11 +9,11 @@ from textual.reactive import Reactive, events
 from textual.widgets import TreeNode
 
 from .. import db
+from ..config import config
 from ..mode import Mode
 from .entry import Entry, EntryType, generate_empty_entry
 from .in_app_logger import ialogger
 from .nested_list import NestedList
-from ..config import config
 
 
 cyrillic_layout = dict(
@@ -45,8 +45,6 @@ class TaskList(NestedList):
     ) -> None:
         super().__init__(label=label, data=data, name=name, padding=padding)
         self._tree.hide_root = True
-        self._hl_style = "yellow"
-        self._dim_style = "white"
 
     async def on_mount(self) -> None:
         await self.add(self.root.id, "Header", ())
@@ -128,12 +126,16 @@ class TaskList(NestedList):
             elif entry.task_id == self._next_task_id:
                 db.add_task(entry.name, entry.parent_id)
                 self._next_task_id += 1
-                ialogger.update(f"{entity} [magenta]{entry.name}[/] added.")
+                ialogger.update(
+                    f"{entity} [{config.styles['LOGGER_HIGHLIGHT']}]"
+                    f"{entry.name}[/] added."
+                )
             else:
                 db.rename_task(entry.task_id, entry.name)
                 ialogger.update(
-                    f"{entity} renamed [magenta]{old_name}[/]"
-                    f" -> [magenta]{entry.name}[/]."
+                    f"{entity} renamed [{config.styles['LOGGER_HIGHLIGHT']}]"
+                    f"{old_name}[/]"
+                    f" -> [{config.styles['LOGGER_HIGHLIGHT']}]{entry.name}[/]."
                 )
 
         event.stop()
@@ -237,7 +239,10 @@ class TaskList(NestedList):
         self._next_task_id = db.get_max_task_id() + 1
 
         entity = "Project" if entry.type is EntryType.FOLDER else "Task"
-        ialogger.update(f"{entity} [magenta]{entry.name}[/] has been removed.")
+        ialogger.update(
+            f"{entity} [{config.styles['LOGGER_HIGHLIGHT']}]{entry.name}[/] "
+            "has been removed."
+        )
 
     async def _delete_tasks_recursively(self) -> list[int]:
         node = self.nodes[self.cursor]
@@ -277,7 +282,7 @@ class TaskList(NestedList):
         await self.add_time(seconds)
 
     def render(self) -> RenderableType:
-        return Panel(self._tree, border_style="blue")
+        return Panel(self._tree, border_style=config.styles["TASKLIST_BORDER"])
 
     def render_node(self, node: TreeNode) -> RenderableType:
         if node is self.root:
@@ -290,10 +295,10 @@ class TaskList(NestedList):
     def _render_entry(self, node: TreeNode) -> RenderableType:
         if node.id == self.cursor:
             rendr = node.data.render(mode=self._mode, expanded=node.expanded)
-            style = self._hl_style
+            style = config.styles["HIGHLIGHTED_TASK"]
         else:
             rendr = node.data.render(expanded=node.expanded)
-            style = self._dim_style
+            style = config.styles["NORMAL_TASK"]
         rendr.row_styles = [style]
         return rendr
 
@@ -308,7 +313,7 @@ class TaskList(NestedList):
         time = Text(text_data, justify="right")
 
         header = Table.grid(expand=True)
-        header.add_row(name, time, style="magenta bold")
+        header.add_row(name, time, style=config.styles["TASKLIST_HEADER"])
         return header
 
     def _render_root(self) -> RenderableType:

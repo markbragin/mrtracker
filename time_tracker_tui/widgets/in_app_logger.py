@@ -7,7 +7,7 @@ from textual.reactive import Reactive
 from textual.widget import Widget
 
 from ..__init__ import __version__
-from ..styles import styles
+from ..config import config
 
 
 class Logger(Widget, can_focus=False):
@@ -18,10 +18,13 @@ class Logger(Widget, can_focus=False):
     def __init__(
         self,
         name: str | None = "Logger",
-        msg: str = f"Time tracker v{__version__}\n[blue]ctrl+h[/] - show help",
     ) -> None:
         super().__init__(name=name)
-        self._content = msg
+        self._content = (
+            f"Time tracker v{__version__}\n"
+            + f"[{config.styles['LOGGER_HIGHLIGHT']}]"
+            + f"{config.app_keys['show_help']}[/] - show help"
+        )
 
     @property
     def content(self) -> str:
@@ -45,13 +48,13 @@ class Logger(Widget, can_focus=False):
 
     def render(self) -> RenderableType:
         if self._error:
-            self.style = styles["LOGGER_ERROR"]
+            border_style = config.styles["LOGGER_ERROR_BORDER"]
         else:
-            self.style = styles["LOGGER"]
+            border_style = config.styles["LOGGER_BORDER"]
 
         self.panel = Panel(
             Align.center(self.content, vertical="middle", style="white"),
-            border_style=self.style,
+            border_style=border_style,
             expand=True,
         )
         return self.panel

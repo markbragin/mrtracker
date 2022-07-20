@@ -6,7 +6,7 @@ from rich.panel import Panel
 from textual.reactive import Reactive
 from textual.widget import Widget
 
-from ..styles import styles
+from ..config import config
 
 
 class CurrentTask(Widget, can_focus=False):
@@ -16,8 +16,6 @@ class CurrentTask(Widget, can_focus=False):
 
     def __init__(self, name: str | None = "CurrentTask") -> None:
         super().__init__(name=name)
-        self.border_style = styles["INPUT_BORDER_BAD"]
-        self.style = styles["INPUT_LOST_FOCUS"]
 
     def clear_content(self) -> None:
         self._content = ""
@@ -29,15 +27,16 @@ class CurrentTask(Widget, can_focus=False):
     def render(self) -> RenderableType:
         if self._content:
             rendr = Align.center(self._content)
-            self.border_style = styles["INPUT_BORDER_GOOD"]
+            border_style = config.styles["CURRENT_TASK_GOOD_BORDER"]
         else:
             rendr = Align.center(self._placeholder)
-            self.border_style = styles["INPUT_BORDER_BAD"]
+            border_style = config.styles["CURRENT_TASK_BAD_BORDER"]
 
-        self.panel = Panel(
+        panel = Panel(
             rendr,
             title="Working on",
-            border_style=self.border_style,
+            style=config.styles["CURRENT_TASK_TEXT"],
+            border_style=border_style,
             height=3,
         )
-        return self.panel
+        return panel

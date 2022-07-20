@@ -6,8 +6,8 @@ from rich.panel import Panel
 from textual.reactive import Reactive
 from textual.widget import Widget
 
+from ..config import config
 from ..stopwatch import Stopwatch
-from ..styles import styles
 
 
 class Timer(Widget, can_focus=False):
@@ -39,10 +39,12 @@ class Timer(Widget, can_focus=False):
         self._working = self.timer.on
         self.panel = Panel(
             Align.center(
-                self.time_str, vertical="middle", style=styles["FOCUS"]
+                self.time_str,
+                vertical="middle",
+                style=config.styles["TIMER_TEXT"],
             ),
             title="for",
-            border_style=styles["FOCUS_BORDER"],
+            border_style=config.styles["TIMER_BORDER"],
             expand=True,
         )
         return self.panel
