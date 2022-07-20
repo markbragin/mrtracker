@@ -20,12 +20,12 @@ class HelpView(DockView):
     def create_table(self) -> Table:
         table = Table(show_header=False, box=None)
         table.title_style = ""
-        table.show_footer = True
         table.title = (
             "[yellow bold]Help\n\n[/]"
             + "To change bindings and styles edit\n"
             + f"[dim]{CONFIG_PATH}[/]"
         )
+
         table.add_row("[magenta]App keys:")
         for descrip, key in config.app_keys.items():
             table.add_row(
