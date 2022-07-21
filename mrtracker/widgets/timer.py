@@ -1,13 +1,11 @@
-from __future__ import annotations
-
 from rich.align import Align
 from rich.console import RenderableType
 from rich.panel import Panel
-from textual.widget import Widget
 from textual.reactive import Reactive
+from textual.widget import Widget
 
+from ..config import config
 from ..stopwatch import Stopwatch
-from ..styles import styles
 
 
 class Timer(Widget, can_focus=False):
@@ -41,10 +39,10 @@ class Timer(Widget, can_focus=False):
             Align.center(
                 self.time_str,
                 vertical="middle",
-                style=styles["FOCUS"]
+                style=config.styles["TIMER_TEXT"],
             ),
             title="for",
-            border_style=styles["FOCUS_BORDER"],
+            border_style=config.styles["TIMER_BORDER"],
             expand=True,
         )
         return self.panel

@@ -1,20 +1,27 @@
 [tool.poetry]
-name = "time_tracker_tui"
-version = "0.3.4"
-description = "Simple tui time tracker"
-authors = ["Mark Bragin <m4rk.brag1n@gmail.com>"]
+name = "mrtracker"
+version = "0.1.0"
+description = "A TUI time tracker"
+authors = [
+    "Mark Bragin <m4rk.brag1n@gmail.com>",
+    "Alexandr Ivanov <ivanoid12@yandex.ru>"
+]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.10"
 textual = "^0.1.18"
 platformdirs = "^2.5.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
+loguru = "^0.6.0"
+black = "^22.6.0"
+flake8 = "^4.0.1"
+grip = "^4.6.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-time-tracker = "time_tracker_tui.__main__:main"
+mrtracker = "mrtracker.__main__:main"

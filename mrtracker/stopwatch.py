@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 
 
-class Stopwatch():
+class Stopwatch:
 
     _on: bool = False
     _paused: bool = False
@@ -39,10 +39,16 @@ class Stopwatch():
         return self._elapsed_t.seconds
 
     def get_elapsed_time_str(self):
-        return self.sec_to_str(self.get_elapsed_time())
+        return sec_to_str(self.get_elapsed_time())
 
-    @staticmethod
-    def sec_to_str(seconds) -> str:
-        return f"{seconds // 3600}".zfill(2) + ':' + \
-               f"{seconds % 3600 // 60}".zfill(2) + ':' + \
-               f"{seconds % 60}".zfill(2)
+
+def sec_to_str(seconds) -> str:
+    if not isinstance(seconds, int):
+        return "00:00:00"
+    return (
+        f"{seconds // 3600}".zfill(2)
+        + ":"
+        + f"{seconds % 3600 // 60}".zfill(2)
+        + ":"
+        + f"{seconds % 60}".zfill(2)
+    )
