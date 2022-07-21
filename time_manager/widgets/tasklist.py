@@ -106,32 +106,55 @@ class TaskList(NestedList):
     async def on_key(self, event: events.Key) -> None:
         if self._mode == Mode.INSERT:
             await self.handle_keypress_in_insert_mode(event)
+        elif self._mode == Mode.DELETE:
+            await self.handle_keypress_in_delete_mode(event)
         else:
             await self.handle_keypress_in_normal_mode(event)
 
     async def handle_keypress_in_insert_mode(self, event: events.Key) -> None:
         entry = self.nodes[self.cursor].data
-        old_name = entry.name
         entry.on_key(event)
         if event.key in ["escape", "enter"]:
-            self._toggle_mode()
-            entity = "Project" if entry.type == EntryType.FOLDER else "Task"
+            self._mode = Mode.NORMAL
+            old_name = entry.name
+            entry.name = entry.content
             if entry.name == "":
                 await self.remove_childless_node()
             elif entry.task_id == self._next_task_id:
                 db.add_task(entry.name, entry.parent_id)
                 self._next_task_id += 1
                 ialogger.update(
-                    f"{entity} [{config.styles['LOGGER_HIGHLIGHT']}]"
+                    f"{entry.type.name} [{config.styles['LOGGER_HIGHLIGHT']}]"
                     f"{entry.name}[/] added."
                 )
-            elif entry.name != old_name:
+            if entry.name != entry.content:
                 db.rename_task(entry.task_id, entry.name)
                 ialogger.update(
-                    f"{entity} renamed [{config.styles['LOGGER_HIGHLIGHT']}]"
-                    f"{old_name}[/]"
-                    f" -> [{config.styles['LOGGER_HIGHLIGHT']}]{entry.name}[/]."
+                    f"{entry.type.name} renamed "
+                    f"[{config.styles['LOGGER_HIGHLIGHT']}]{old_name}[/] ->"
+                    f"[{config.styles['LOGGER_HIGHLIGHT']}]{entry.name}[/]."
                 )
+
+        event.stop()
+        self.refresh()
+
+    async def handle_keypress_in_delete_mode(self, event: events.Key) -> None:
+        entry = self.nodes[self.cursor].data
+        entry.on_key(event)
+        if event.key == "enter":
+            self._mode = Mode.NORMAL
+            if entry.content == "delete":
+                db.delete_tasks(*await self._delete_tasks_recursively())
+                self._next_task_id = db.get_max_task_id() + 1
+                ialogger.update(
+                    f"{entry.type.name} [{config.styles['LOGGER_HIGHLIGHT']}]"
+                    + f"{entry.name}[/] has been removed."
+                )
+            else:
+                ialogger.update("Deletion canceled")
+        elif event.key == "escape":
+            self._mode = Mode.NORMAL
+            ialogger.update("Deletion canceled")
 
         event.stop()
         self.refresh()
@@ -180,13 +203,10 @@ class TaskList(NestedList):
             else:
                 self.current_task = entry
 
-    def _toggle_mode(self) -> None:
-        self._mode = Mode.INSERT if self._mode == Mode.NORMAL else Mode.NORMAL
-
     def rename_task(self) -> None:
         if not self._valid_cursor():
             return
-        self._toggle_mode()
+        self._mode = Mode.INSERT
         entry = self.nodes[self.cursor].data
         entry.content = entry.name
 
@@ -229,15 +249,10 @@ class TaskList(NestedList):
     async def delete_task(self) -> None:
         if not self._valid_cursor():
             return
-        entry = self.nodes[self.cursor].data
-        db.delete_tasks(*await self._delete_tasks_recursively())
-        self._next_task_id = db.get_max_task_id() + 1
-
-        entity = "Project" if entry.type is EntryType.FOLDER else "Task"
-        ialogger.update(
-            f"{entity} [{config.styles['LOGGER_HIGHLIGHT']}]{entry.name}[/] "
-            "has been removed."
-        )
+        self._mode = Mode.DELETE
+        hl = config.styles["LOGGER_HIGHLIGHT"]
+        ialogger.update(f"Type [{hl}]'delete'[/] and press [{hl}]enter[/]")
+        self.nodes[self.cursor].data.clear_content()
 
     def _valid_cursor(self) -> bool:
         return self.cursor not in [self.root.id, self.root.children[0].id]

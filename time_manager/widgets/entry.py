@@ -34,10 +34,7 @@ class Entry(TextInput):
         self.total = data[5]
 
     def on_key(self, event: events.Key) -> None:
-        if event.key == "enter" and self.content:
-            self.name = self.content
-        else:
-            super().on_key(event)
+        super().on_key(event)
 
     @property
     def type(self) -> EntryType:
@@ -66,7 +63,7 @@ class Entry(TextInput):
     def _render_name(
         self, mode: Mode = Mode.NORMAL, expanded: bool = False
     ) -> RenderableType:
-        name = self._render_with_cursor() if mode == Mode.INSERT else self.name
+        name = self._render_with_cursor() if mode != Mode.NORMAL else self.name
         if self.type is EntryType.FOLDER:
             name = f"🗁  {name}" if expanded else f"🗀 {name}"
         return name
