@@ -295,7 +295,9 @@ class TaskList(NestedList):
         await self.add_time(seconds)
 
     async def toggle_all_folders(self) -> None:
-        await self.toggle_root_children()
+        if self.root.children[1]:
+            for node in self.root.children:
+                await node.expand(not self.root.children[-1].expanded)
 
     def render(self) -> RenderableType:
         return Panel(self._tree, border_style=config.styles["TASKLIST_BORDER"])

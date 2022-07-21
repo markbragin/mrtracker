@@ -66,10 +66,6 @@ class NestedList(TreeControl):
         self.cursor = NodeID(0)
         self.cursor_line = 0
 
-    async def toggle_root_children(self) -> None:
-        for node in self.root.children:
-            await node.toggle()
-
     async def toggle_folding(self) -> None:
         await self.nodes[self.cursor].toggle()
 
