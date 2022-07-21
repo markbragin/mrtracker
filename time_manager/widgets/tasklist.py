@@ -187,6 +187,8 @@ class TaskList(NestedList):
             await self.add_sibling_task()
         elif key in config.tasklist_keys["delete_task"]:
             await self.delete_task()
+        elif key in config.tasklist_keys["toggle_all_folders"]:
+            await self.toggle_all_folders()
 
     def _handle_starting_task(self) -> None:
         if self.blocked:
@@ -293,6 +295,9 @@ class TaskList(NestedList):
             return
         await self.go_to_parent()
         await self.add_time(seconds)
+
+    async def toggle_all_folders(self) -> None:
+        await self.toggle_root_children()
 
     def render(self) -> RenderableType:
         return Panel(self._tree, border_style=config.styles["TASKLIST_BORDER"])
