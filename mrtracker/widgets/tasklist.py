@@ -125,7 +125,7 @@ class TaskList(NestedList):
                     f"{entry.type.name} [{config.styles['LOGGER_HIGHLIGHT']}]"
                     f"{entry.name}[/] added."
                 )
-            if entry.name != entry.content:
+            if entry.name != old_name:
                 db.rename_task(entry.task_id, entry.name)
                 ialogger.update(
                     f"{entry.type.name} renamed "
