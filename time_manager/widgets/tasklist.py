@@ -125,7 +125,7 @@ class TaskList(NestedList):
                     f"{entity} [{config.styles['LOGGER_HIGHLIGHT']}]"
                     f"{entry.name}[/] added."
                 )
-            else:
+            elif entry.name != old_name:
                 db.rename_task(entry.task_id, entry.name)
                 ialogger.update(
                     f"{entity} renamed [{config.styles['LOGGER_HIGHLIGHT']}]"
@@ -184,7 +184,7 @@ class TaskList(NestedList):
         self._mode = Mode.INSERT if self._mode == Mode.NORMAL else Mode.NORMAL
 
     def rename_task(self) -> None:
-        if self.cursor in [self.root.id, self.root.children[0].id]:
+        if not self._valid_cursor():
             return
         self._toggle_mode()
         entry = self.nodes[self.cursor].data
@@ -196,7 +196,7 @@ class TaskList(NestedList):
         await super().add_child(label, data)
 
     async def add_sibling(self, label: TextType, data) -> None:
-        if self.cursor in [self.root.id, self.root.children[0].id]:
+        if not self._valid_cursor():
             return
         await super().add_sibling(label, data)
 
@@ -207,7 +207,7 @@ class TaskList(NestedList):
         await self.on_key(events.Key(self, "r"))
 
     async def add_child_task(self) -> None:
-        if self.cursor in [self.root.id, self.root.children[0].id]:
+        if not self._valid_cursor():
             ialogger.update("Create project first", error=True)
             return
         entry = self.nodes[self.cursor].data
@@ -217,7 +217,7 @@ class TaskList(NestedList):
         await self.on_key(events.Key(self, "r"))
 
     async def add_sibling_task(self) -> None:
-        if self.cursor in [self.root.id, self.root.children[0].id]:
+        if not self._valid_cursor():
             ialogger.update("Create project first", error=True)
             return
         entry = self.nodes[self.cursor].data
@@ -227,7 +227,7 @@ class TaskList(NestedList):
         await self.on_key(events.Key(self, "r"))
 
     async def delete_task(self) -> None:
-        if self.cursor in [self.root.id, self.root.children[0].id]:
+        if not self._valid_cursor():
             return
         entry = self.nodes[self.cursor].data
         db.delete_tasks(*await self._delete_tasks_recursively())
@@ -238,6 +238,9 @@ class TaskList(NestedList):
             f"{entity} [{config.styles['LOGGER_HIGHLIGHT']}]{entry.name}[/] "
             "has been removed."
         )
+
+    def _valid_cursor(self) -> bool:
+        return self.cursor not in [self.root.id, self.root.children[0].id]
 
     async def _delete_tasks_recursively(self) -> list[int]:
         node = self.nodes[self.cursor]

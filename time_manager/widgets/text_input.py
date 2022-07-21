@@ -52,9 +52,8 @@ class TextInput(Widget):
             self._on_delete()
         elif event.key == "left":
             self._cursor_left()
-        # elif event.key == "escape":
-        #     await self._unfocus()
-        #     return
+        elif event.key == "escape":
+            return
         elif event.key == "right":
             self._cursor_right()
         elif event.key.isprintable() and len(event.key) == 1:
