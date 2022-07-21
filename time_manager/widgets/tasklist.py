@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from rich.console import RenderableType
 from rich.padding import PaddingDimensions
 from rich.panel import Panel

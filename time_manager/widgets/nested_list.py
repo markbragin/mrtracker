@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from rich.padding import PaddingDimensions
 from rich.text import TextType
 from textual.app import events

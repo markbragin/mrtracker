@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from rich.align import Align
 from rich.table import Table
 from textual.views._dock_view import DockView

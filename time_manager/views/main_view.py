@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from textual.views._grid_view import GridView
 
 from ..widgets.current_task import CurrentTask

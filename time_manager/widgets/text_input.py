@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from rich.console import RenderableType
 from textual.app import events
 from textual.reactive import Reactive

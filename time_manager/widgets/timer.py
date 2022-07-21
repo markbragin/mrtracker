@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from rich.align import Align
 from rich.console import RenderableType
 from rich.panel import Panel
