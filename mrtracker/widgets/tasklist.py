@@ -298,6 +298,7 @@ class TaskList(NestedList):
         if self.root.children[1]:
             for node in self.root.children:
                 await node.expand(not self.root.children[-1].expanded)
+            await self.go_to_parent_folder()
 
     def render(self) -> RenderableType:
         return Panel(self._tree, border_style=config.styles["TASKLIST_BORDER"])
