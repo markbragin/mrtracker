@@ -2,7 +2,7 @@ from .app import TimeTracker
 
 
 def main():
-    TimeTracker.run(title="MRTracker", log="textual.log")
+    TimeTracker.run(title="MRTracker")
 
 
 if __name__ == "__main__":

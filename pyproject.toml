@@ -1,6 +1,7 @@
 [tool.poetry]
 name = "mrtracker"
 version = "0.1.0"
+homepage = "https://github.com/markbragin/mrtracker"
 description = "A TUI time tracker"
 authors = [
     "Mark Bragin <m4rk.brag1n@gmail.com>",

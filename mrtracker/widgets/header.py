@@ -1,7 +1,6 @@
 from datetime import datetime
 
 from rich.console import RenderableType
-from rich.panel import Panel
 from rich.table import Table
 from textual.reactive import Reactive, watch
 from textual.widget import Widget
