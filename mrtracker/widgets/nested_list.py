@@ -31,12 +31,18 @@ class NestedList(TreeControl):
         await self._cur_to_root()
         await self.add_child(label, data)
 
-    async def remove_childless_node(self) -> None:
-        if self.cursor == self.root.id:
+    async def remove_node(self, node: TreeNode | None = None) -> None:
+        node = node if node else self.nodes[self.cursor]
+
+        if node is self.root:
             return
 
-        node = self.nodes[self.cursor]
-        await self.cursor_up()
+        for nd in node.children:
+            await self.remove_node(nd)
+
+        if node.id == self.cursor:
+            await self.cursor_up()
+
         node.parent.tree.children.remove(node.tree)
         node.parent.children.remove(node)
         del self.nodes[node.id]
@@ -69,30 +75,17 @@ class NestedList(TreeControl):
     async def toggle_folding(self) -> None:
         await self.nodes[self.cursor].toggle()
 
-    async def toggle_folding_recursively(self) -> None:
-        if self.nodes[self.cursor].expanded:
-            await self._fold_recursively()
-        else:
-            await self._unfold_recursively()
+    async def toggle_folding_recursively(
+        self, node: TreeNode | None = None
+    ) -> None:
+        node = node if node else self.nodes[self.cursor]
+        await self._fold_recursively(not node.expanded, node)
 
-    async def _unfold_recursively(self) -> None:
-        node = self.nodes[self.cursor]
-        next_sibling = node.next_sibling
-        await node.expand()
-        while self.nodes[self.cursor].next_node is not next_sibling:
-            await self.cursor_down()
-            await self.nodes[self.cursor].expand()
-        await self._cur_back_to(node)
-
-    async def _fold_recursively(self) -> None:
-        node = self.nodes[self.cursor]
-        next_sibling = node.next_sibling
-        while self.nodes[self.cursor].next_node is not next_sibling:
-            await self.cursor_down()
-
-        while self.cursor != node.id:
-            await self.cursor_up()
-            await self.toggle_folding()
+    async def _fold_recursively(self, expanded: bool, node: TreeNode) -> None:
+        await node.expand(expanded)
+        for nd in node.children:
+            await nd.expand(expanded)
+            await self._fold_recursively(expanded, nd)
 
     async def key_down(self, event: events.Key) -> None:
         pass

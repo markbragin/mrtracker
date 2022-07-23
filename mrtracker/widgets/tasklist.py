@@ -114,7 +114,7 @@ class TaskList(NestedList):
             self._mode = Mode.NORMAL
             if entry.content == "":
                 if entry.name == "":
-                    await self.remove_childless_node()
+                    await self.remove_node()
             elif entry.task_id == self._next_task_id:
                 entry.name = entry.content
                 db.add_task(entry.name, entry.parent_id)
@@ -136,12 +136,15 @@ class TaskList(NestedList):
         self.refresh()
 
     async def handle_keypress_in_delete_mode(self, event: events.Key) -> None:
-        entry = self.nodes[self.cursor].data
+        node = self.nodes[self.cursor]
+        entry = node.data
         entry.on_key(event)
         if event.key == "enter":
             self._mode = Mode.NORMAL
             if entry.content == "delete":
-                db.delete_tasks(await self._delete_tasks_recursively())
+                db.delete_tasks(self._collect_task_ids())
+                self._subtract_from_parents(node.parent, node)
+                await self.remove_node()
                 self._next_task_id = db.get_max_task_id() + 1
                 ialogger.update(
                     f"{entry.type.name} [{config.styles['LOGGER_HIGHLIGHT']}]"
@@ -209,16 +212,6 @@ class TaskList(NestedList):
         entry = self.nodes[self.cursor].data
         entry.content = entry.name
 
-    async def add_child(self, label: TextType, data) -> None:
-        if self.cursor == self.root.children[0].id:
-            return
-        await super().add_child(label, data)
-
-    async def add_sibling(self, label: TextType, data) -> None:
-        if not self._valid_cursor():
-            return
-        await super().add_sibling(label, data)
-
     async def add_folder(self) -> None:
         await self.add_root_child(
             "", generate_empty_entry(self._next_task_id, 0)
@@ -256,48 +249,50 @@ class TaskList(NestedList):
     def _valid_cursor(self) -> bool:
         return self.cursor not in [self.root.id, self.root.children[0].id]
 
-    async def _delete_tasks_recursively(self) -> list[int]:
-        node = self.nodes[self.cursor]
+    def _collect_task_ids(self, node: TreeNode | None = None) -> list[int]:
+        node = node if node else self.nodes[self.cursor]
         ids = [node.data.task_id]
-
-        if node.data.type is EntryType.TASK:
-            self.subtract_child_time(node)
-
-        await node.expand()
-        while node.children:
-            await self.cursor_down()
-            cur_node = self.nodes[self.cursor]
-            ids.append(cur_node.data.task_id)
-            if not cur_node.children:
-                await self.remove_childless_node()
-                continue
-            await cur_node.expand()
-
-        await self.remove_childless_node()
-        await self.cursor_down()
+        self._collect_children_ids(node, ids)
         return ids
 
-    def subtract_child_time(self, child: TreeNode) -> None:
-        if child.parent:
-            child.parent.data.today -= child.data.today
-            child.parent.data.month -= child.data.month
-            child.parent.data.total -= child.data.total
+    def _collect_children_ids(self, node: TreeNode, ids: list[int]) -> None:
+        for nd in node.children:
+            ids.append(nd.data.task_id)
+            self._collect_children_ids(nd, ids)
 
-    async def add_time(self, seconds: int) -> None:
-        entry = self.nodes[self.cursor].data
+    def _subtract_time(self, left: TreeNode, right: TreeNode) -> None:
+        left.data.today -= right.data.today
+        left.data.month -= right.data.month
+        left.data.total -= right.data.month
+
+    def _subtract_from_parents(self, parent: TreeNode, node: TreeNode) -> None:
+        self._subtract_time(parent, node)
+        if parent.parent:
+            self._subtract_from_parents(parent.parent, node)
+
+    def add_time(
+        self, seconds: int, node: TreeNode | None = None
+    ) -> None:
+        node = node if node else self.nodes[self.cursor]
+        entry = node.data
         entry.today += seconds
         entry.month += seconds
         entry.total += seconds
         if entry.type is EntryType.FOLDER:
             return
-        await self.go_to_parent()
-        await self.add_time(seconds)
+        if node.parent:
+            self.add_time(seconds, node.parent)
 
     async def toggle_all_folders(self) -> None:
-        if self.root.children[1]:
+        if len(self.root.children) > 1:
             for node in self.root.children:
                 await node.expand(not self.root.children[-1].expanded)
             await self.go_to_parent_folder()
+
+    async def toggle_all_folders_recursively(self) -> None:
+        if self.root.children[1]:
+            for node in reversed(self.root.children[1:]):
+                await node.expand(not self.root.children[-1].expanded)
 
     def render(self) -> RenderableType:
         return Panel(self._tree, border_style=config.styles["TASKLIST_BORDER"])
