@@ -21,7 +21,8 @@
             "toggle_folding_recursively": ["Z"],
             "go_to_parent": ["p"],
             "go_to_parent_folder": ["P"],
-            "toggle_all_folders": ["o"]
+            "toggle_all_folders": ["o"],
+            "toggle_all_folders_recursively": ["O"]
         }
     },
     "styles": {

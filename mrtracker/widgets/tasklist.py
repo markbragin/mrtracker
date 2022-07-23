@@ -189,6 +189,8 @@ class TaskList(NestedList):
             await self.delete_task()
         elif key in config.tasklist_keys["toggle_all_folders"]:
             await self.toggle_all_folders()
+        elif key in config.tasklist_keys["toggle_all_folders_recursively"]:
+            await self.toggle_all_folders_recursively()
 
     def _handle_starting_task(self) -> None:
         if self.blocked:
@@ -270,9 +272,7 @@ class TaskList(NestedList):
         if parent.parent:
             self._subtract_from_parents(parent.parent, node)
 
-    def add_time(
-        self, seconds: int, node: TreeNode | None = None
-    ) -> None:
+    def add_time(self, seconds: int, node: TreeNode | None = None) -> None:
         node = node if node else self.nodes[self.cursor]
         entry = node.data
         entry.today += seconds
@@ -290,9 +290,12 @@ class TaskList(NestedList):
             await self.go_to_parent_folder()
 
     async def toggle_all_folders_recursively(self) -> None:
-        if self.root.children[1]:
-            for node in reversed(self.root.children[1:]):
-                await node.expand(not self.root.children[-1].expanded)
+        if len(self.root.children) > 1:
+            for node in self.root.children:
+                await self.toggle_folding_recursively(
+                    node, not self.root.children[-1].expanded
+                )
+            await self.go_to_parent_folder()
 
     def render(self) -> RenderableType:
         return Panel(self._tree, border_style=config.styles["TASKLIST_BORDER"])
