@@ -110,7 +110,7 @@ class TaskList(NestedList):
     async def handle_keypress_in_insert_mode(self, event: events.Key) -> None:
         entry = self.nodes[self.cursor].data
         entry.on_key(event)
-        if event.key in ["escape", "enter"]:
+        if event.key == ["escape", "enter"]:
             self._mode = Mode.NORMAL
             if entry.content == "":
                 if entry.name == "":
@@ -161,35 +161,35 @@ class TaskList(NestedList):
 
     async def handle_keypress_in_normal_mode(self, event: events.Key) -> None:
         key = event.key.translate(cyrillic_layout)
-        if event.key in config.tasklist_keys["start_task"]:
+        if event.key == config.tasklist_keys["start_task"]:
             self._handle_starting_task()
         elif self.blocked:
             return
-        elif key in config.tasklist_keys["rename_task"]:
+        elif key == config.tasklist_keys["rename_task"]:
             self.rename_task()
-        elif key in config.tasklist_keys["go_down"]:
+        elif key in [config.tasklist_keys["go_down"], "down"]:
             await self.go_down()
-        elif key in config.tasklist_keys["go_up"]:
+        elif key in [config.tasklist_keys["go_up"], "up"]:
             await self.go_up()
-        elif key in config.tasklist_keys["toggle_folding"]:
+        elif key == config.tasklist_keys["toggle_folding"]:
             await self.toggle_folding()
-        elif key in config.tasklist_keys["toggle_folding_recursively"]:
+        elif key == config.tasklist_keys["toggle_folding_recursively"]:
             await self.toggle_folding_recursively()
-        elif key in config.tasklist_keys["go_to_parent"]:
+        elif key == config.tasklist_keys["go_to_parent"]:
             await self.go_to_parent()
-        elif key in config.tasklist_keys["go_to_parent_folder"]:
+        elif key == config.tasklist_keys["go_to_parent_folder"]:
             await self.go_to_parent_folder()
-        elif key in config.tasklist_keys["add_folder"]:
+        elif key == config.tasklist_keys["add_folder"]:
             await self.add_folder()
-        elif key in config.tasklist_keys["add_child_task"]:
+        elif key == config.tasklist_keys["add_child_task"]:
             await self.add_child_task()
-        elif key in config.tasklist_keys["add_sibling_task"]:
+        elif key == config.tasklist_keys["add_sibling_task"]:
             await self.add_sibling_task()
-        elif key in config.tasklist_keys["delete_task"]:
+        elif key == config.tasklist_keys["delete_task"]:
             await self.delete_task()
-        elif key in config.tasklist_keys["toggle_all_folders"]:
+        elif key == config.tasklist_keys["toggle_all_folders"]:
             await self.toggle_all_folders()
-        elif key in config.tasklist_keys["toggle_all_folders_recursively"]:
+        elif key == config.tasklist_keys["toggle_all_folders_recursively"]:
             await self.toggle_all_folders_recursively()
 
     def _handle_starting_task(self) -> None:
