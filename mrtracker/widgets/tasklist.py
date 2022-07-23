@@ -8,7 +8,7 @@ from textual.widgets import NodeID, TreeNode
 
 from .. import db
 from ..config import config
-from ..mode import Mode
+from ..mode import Action, Mode
 from .entry import Entry, EntryType, generate_empty_entry
 from .in_app_logger import ialogger
 from .nested_list import NestedList
@@ -31,6 +31,7 @@ class TaskList(NestedList):
 
     _mode: Reactive[Mode] = Reactive(Mode.NORMAL)
     _next_task_id: int = 0
+    _action: Reactive[Action | None] = Reactive(None)
     current_task: Reactive[Entry | None] = Reactive(None)
     blocked: Reactive[bool] = Reactive(False)
 
@@ -102,62 +103,66 @@ class TaskList(NestedList):
     async def on_key(self, event: events.Key) -> None:
         if self._mode == Mode.INSERT:
             await self.handle_keypress_in_insert_mode(event)
-        elif self._mode == Mode.DELETE:
-            await self.handle_keypress_in_delete_mode(event)
         else:
             await self.handle_keypress_in_normal_mode(event)
 
     async def handle_keypress_in_insert_mode(self, event: events.Key) -> None:
-        entry = self.nodes[self.cursor].data
-        entry.on_key(event)
-        if event.key == ["escape", "enter"]:
+        self.nodes[self.cursor].data.on_key(event)
+        if event.key in ["escape", "enter"]:
+            cancel = event.key == "escape"
+            if self._action is Action.ADD:
+                await self.handle_adding_task(cancel)
+            elif self._action is Action.RENAME:
+                await self.handle_renaming_task(cancel)
+            elif self._action is Action.DELETE:
+                await self.handle_deleting_task(cancel)
+            self._action = None
             self._mode = Mode.NORMAL
-            if entry.content == "":
-                if entry.name == "":
-                    await self.remove_node()
-            elif entry.task_id == self._next_task_id:
-                entry.name = entry.content
-                db.add_task(entry.name, entry.parent_id)
-                self._next_task_id += 1
-                ialogger.update(
-                    f"{entry.type.name} [{config.styles['LOGGER_HIGHLIGHT']}]"
-                    f"{entry.name}[/] added."
-                )
-            elif entry.name != entry.content:
-                ialogger.update(
-                    f"{entry.type.name} renamed "
-                    f"[{config.styles['LOGGER_HIGHLIGHT']}]{entry.name}[/] -> "
-                    f"[{config.styles['LOGGER_HIGHLIGHT']}]{entry.content}[/]."
-                )
-                entry.name = entry.content
-                db.rename_task(entry.task_id, entry.name)
-
         event.stop()
         self.refresh()
 
-    async def handle_keypress_in_delete_mode(self, event: events.Key) -> None:
+    async def handle_adding_task(self, cancel: bool = False) -> None:
+        entry = self.nodes[self.cursor].data
+        if entry.content == entry.name == "" or cancel:
+            await self.remove_node()
+        else:
+            entry.name = entry.content
+            db.add_task(entry.name, entry.parent_id)
+            self._next_task_id += 1
+            ialogger.update(
+                f"{entry.type.name} [{config.styles['LOGGER_HIGHLIGHT']}]"
+                f"{entry.name}[/] added."
+            )
+
+    async def handle_renaming_task(self, cancel: bool = False) -> None:
+        entry = self.nodes[self.cursor].data
+        if any((cancel, not entry.content, entry.name == entry.content)):
+            return
+        else:
+            ialogger.update(
+                f"{entry.type.name} renamed "
+                f"[{config.styles['LOGGER_HIGHLIGHT']}]{entry.name}[/] -> "
+                f"[{config.styles['LOGGER_HIGHLIGHT']}]{entry.content}[/]."
+            )
+            entry.name = entry.content
+            db.rename_task(entry.task_id, entry.name)
+
+    async def handle_deleting_task(self, cancel: bool = False) -> None:
         node = self.nodes[self.cursor]
         entry = node.data
-        entry.on_key(event)
-        if event.key == "enter":
-            self._mode = Mode.NORMAL
-            if entry.content == "delete":
-                db.delete_tasks(self._collect_task_ids())
-                self._subtract_from_parents(node.parent, node)
-                await self.remove_node()
-                self._next_task_id = db.get_max_task_id() + 1
-                ialogger.update(
-                    f"{entry.type.name} [{config.styles['LOGGER_HIGHLIGHT']}]"
-                    + f"{entry.name}[/] has been removed."
-                )
-            else:
-                ialogger.update("Deletion canceled")
-        elif event.key == "escape":
-            self._mode = Mode.NORMAL
+        if cancel:
             ialogger.update("Deletion canceled")
-
-        event.stop()
-        self.refresh()
+        elif entry.content == "delete":
+            db.delete_tasks(self._collect_task_ids())
+            self._subtract_from_parents(node.parent, node)
+            await self.remove_node()
+            self._next_task_id = db.get_max_task_id() + 1
+            ialogger.update(
+                f"{entry.type.name} [{config.styles['LOGGER_HIGHLIGHT']}]"
+                + f"{entry.name}[/] has been removed."
+            )
+        else:
+            ialogger.update("Abort")
 
     async def handle_keypress_in_normal_mode(self, event: events.Key) -> None:
         key = event.key.translate(cyrillic_layout)
@@ -210,6 +215,7 @@ class TaskList(NestedList):
     def rename_task(self) -> None:
         if not self._valid_cursor():
             return
+        self._action = Action.RENAME
         self._mode = Mode.INSERT
         entry = self.nodes[self.cursor].data
         entry.content = entry.name
@@ -218,7 +224,10 @@ class TaskList(NestedList):
         await self.add_root_child(
             "", generate_empty_entry(self._next_task_id, 0)
         )
-        await self.on_key(events.Key(self, "r"))
+        self._action = Action.ADD
+        self._mode = Mode.INSERT
+        entry = self.nodes[self.cursor].data
+        entry.clear_content()
 
     async def add_child_task(self) -> None:
         if not self._valid_cursor():
@@ -228,7 +237,9 @@ class TaskList(NestedList):
         await self.add_child(
             "", generate_empty_entry(self._next_task_id, entry.task_id)
         )
-        await self.on_key(events.Key(self, "r"))
+        self._action = Action.ADD
+        self._mode = Mode.INSERT
+        entry.clear_content()
 
     async def add_sibling_task(self) -> None:
         if not self._valid_cursor():
@@ -238,15 +249,19 @@ class TaskList(NestedList):
         await self.add_sibling(
             "", generate_empty_entry(self._next_task_id, entry.parent_id)
         )
-        await self.on_key(events.Key(self, "r"))
+        self._action = Action.ADD
+        self._mode = Mode.INSERT
+        entry.clear_content()
 
     async def delete_task(self) -> None:
         if not self._valid_cursor():
             return
-        self._mode = Mode.DELETE
         hl = config.styles["LOGGER_HIGHLIGHT"]
         ialogger.update(f"Type [{hl}]'delete'[/] and press [{hl}]enter[/]")
-        self.nodes[self.cursor].data.clear_content()
+        self._action = Action.DELETE
+        self._mode = Mode.INSERT
+        entry = self.nodes[self.cursor].data
+        entry.clear_content()
 
     def _valid_cursor(self) -> bool:
         return self.cursor not in [self.root.id, self.root.children[0].id]
