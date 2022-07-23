@@ -1,5 +1,7 @@
 # MRTracker
 
+[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/markbragin/mrtracker.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/markbragin/mrtracker/context:python)
+
 MRTracker is a TUI time tracker.
 
 ## Installation
