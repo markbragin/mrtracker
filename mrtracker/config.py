@@ -2,13 +2,14 @@ import json
 import os
 import shutil
 
+from jsonmerge import merge
 from platformdirs import user_config_dir, user_data_dir
 
 
 ROOT_PKG_DIR = os.path.dirname(os.path.abspath(__file__))
 APP_NAME = "mrtracker"
 CONFIG_FILE = "config.json"
-EXAMPLE_CONFIG_FILE = "example_config.json"
+EXAMPLE_CONFIG_FILE = "default_config.json"
 USER_CONFIG_DIR = user_config_dir(APP_NAME)
 USER_DATA_DIR = user_data_dir(APP_NAME)
 CONFIG_PATH = os.path.join(USER_CONFIG_DIR, CONFIG_FILE)
@@ -37,7 +38,17 @@ class Config:
     def load_config(self) -> None:
         if not os.path.exists(CONFIG_PATH):
             self.copy_example_config()
+        else:
+            self.merge_configs()
         self.read_config()
+
+    def merge_configs(self) -> None:
+        with open(CONFIG_PATH, "r") as f1:
+            with open(EXAMPLE_CONFIG_PATH, "r") as f2:
+                user = json.load(f1)
+                base = json.load(f2)
+        with open(CONFIG_PATH, "w") as f1:
+            json.dump(merge(base, user), f1, indent=4)
 
     def read_config(self) -> None:
         with open(CONFIG_PATH, "r") as f:

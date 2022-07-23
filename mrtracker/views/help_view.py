@@ -2,7 +2,7 @@ from rich.align import Align
 from rich.table import Table
 from textual.views._dock_view import DockView
 
-from ..config import config, CONFIG_PATH
+from ..config import CONFIG_PATH, config
 from ..widgets.simple_scrollview import SimpleScrollView
 
 
@@ -16,6 +16,7 @@ class HelpView(DockView):
         await self.dock(self.scrll)
 
     def create_table(self) -> Table:
+        # ---------------------------------------
         table = Table(show_header=False, box=None)
         table.title_style = ""
         table.title = (
@@ -24,6 +25,7 @@ class HelpView(DockView):
             + f"[dim]{CONFIG_PATH}[/]"
         )
 
+        # --------------------------------------
         table.add_row("[magenta]App keys:")
         for descrip, key in config.app_keys.items():
             table.add_row(
@@ -31,10 +33,11 @@ class HelpView(DockView):
             )
         table.add_row(end_section=True)
 
+        # -------------------------------------
         table.add_row("[magenta]Tasklist keys:")
-        for descrip, keys in config.tasklist_keys.items():
+        for descrip, key in config.tasklist_keys.items():
             table.add_row(
-                Align(", ".join(keys), "right", style="blue"),
+                Align(key, "right", style="blue"),
                 " ".join(descrip.split("_")),
             )
         return table
