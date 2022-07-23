@@ -4,7 +4,7 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text, TextType
 from textual.reactive import Reactive, events
-from textual.widgets import TreeNode
+from textual.widgets import NodeID, TreeNode
 
 from .. import db
 from ..config import config
@@ -37,7 +37,7 @@ class TaskList(NestedList):
     def __init__(
         self,
         label: TextType = "TaskList",
-        data=[],
+        data: Entry = generate_empty_entry(0, -1),
         name: str | None = None,
         padding: PaddingDimensions = 0,
     ) -> None:
@@ -45,7 +45,6 @@ class TaskList(NestedList):
         self._tree.hide_root = True
 
     async def on_mount(self) -> None:
-        await self.add(self.root.id, "Header", ())
         await self.collect_data()
 
     async def collect_data(self) -> None:
@@ -54,29 +53,28 @@ class TaskList(NestedList):
         await self._build_tree()
         await self.root.expand()
 
-    async def _build_tree(self, node_id: int = 0) -> tuple:
-        collected_data = (0, 0, 0)
+    async def _build_tree(self) -> None:
         for row in self._data:
-            if row[1] == node_id:
-                await self.add_child(row[2], Entry(row))
-                sub = await self._build_tree(row[0])
-                collected_data = self.sum_tuples(collected_data, sub)
-                await self._cur_to_parent()
-                await self.nodes[self.cursor].toggle()
+            await self.add(row[1], row[2], Entry(row))
 
-        if node_id == 0:
-            return tuple()
+        self.sum_time_recursively()
 
-        entry = self.nodes[self.cursor].data
-        entry.today, entry.month, entry.total = self.sum_tuples(
-            (entry.today, entry.month, entry.total), collected_data
-        )
-        return entry.today, entry.month, entry.total
+    def sum_time_recursively(self, node_id: NodeID = NodeID(0)) -> tuple:
+        cur = self.nodes[node_id]
+        collected_data = (0, 0, 0)
+
+        for node in cur.children:
+            child_data = self.sum_time_recursively(node.id)
+            collected_data = self.sum_tuples(collected_data, child_data)
+
+        cur.data.today += collected_data[0]
+        cur.data.month += collected_data[1]
+        cur.data.total += collected_data[2]
+
+        return (cur.data.today, cur.data.month, cur.data.total)
 
     def sum_tuples(self, t1, t2) -> tuple:
-        no_none1 = tuple(x if x is not None else 0 for x in t1)
-        no_none2 = tuple(x if x is not None else 0 for x in t2)
-        return tuple(map(sum, zip(no_none1, no_none2)))
+        return tuple(map(sum, zip(t1, t2)))
 
     async def go_down(self) -> None:
         await self.cursor_down()
