@@ -3,6 +3,7 @@ from datetime import datetime
 from textual.app import App
 from textual.layouts.dock import DockLayout
 from textual.reactive import Reactive, events, watch
+from textual.view import View
 from textual.views._grid_view import GridView
 
 from . import db
@@ -14,7 +15,7 @@ from .widgets.in_app_logger import ialogger
 
 class TimeTracker(App):
 
-    current_view: Reactive[GridView | None] = Reactive(None)
+    current_view: Reactive[View | None] = Reactive(None)
 
     async def on_load(self) -> None:
         for action, key in config.app_keys.items():
@@ -77,7 +78,7 @@ class TimeTracker(App):
 
     async def action_save_session(self) -> None:
         if self.save_data() and self.main_v.tasklist.current_task:
-            await self.main_v.tasklist.add_time(self.main_v.timer.time)
+            self.main_v.tasklist.add_time(self.main_v.timer.time)
         self.main_v.timer.restart_timer()
         self.main_v.tasklist.current_task = None
         ialogger.update("Your data saved. Timer reset.")
