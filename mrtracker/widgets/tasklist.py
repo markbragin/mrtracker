@@ -112,24 +112,25 @@ class TaskList(NestedList):
         entry.on_key(event)
         if event.key in ["escape", "enter"]:
             self._mode = Mode.NORMAL
-            old_name = entry.name
-            entry.name = entry.content
-            if entry.name == "":
-                await self.remove_childless_node()
+            if entry.content == "":
+                if entry.name == "":
+                    await self.remove_childless_node()
             elif entry.task_id == self._next_task_id:
+                entry.name = entry.content
                 db.add_task(entry.name, entry.parent_id)
                 self._next_task_id += 1
                 ialogger.update(
                     f"{entry.type.name} [{config.styles['LOGGER_HIGHLIGHT']}]"
                     f"{entry.name}[/] added."
                 )
-            elif entry.name != old_name:
-                db.rename_task(entry.task_id, entry.name)
+            elif entry.name != entry.content:
                 ialogger.update(
                     f"{entry.type.name} renamed "
-                    f"[{config.styles['LOGGER_HIGHLIGHT']}]{old_name}[/] ->"
-                    f"[{config.styles['LOGGER_HIGHLIGHT']}]{entry.name}[/]."
+                    f"[{config.styles['LOGGER_HIGHLIGHT']}]{entry.name}[/] -> "
+                    f"[{config.styles['LOGGER_HIGHLIGHT']}]{entry.content}[/]."
                 )
+                entry.name = entry.content
+                db.rename_task(entry.task_id, entry.name)
 
         event.stop()
         self.refresh()
@@ -140,7 +141,7 @@ class TaskList(NestedList):
         if event.key == "enter":
             self._mode = Mode.NORMAL
             if entry.content == "delete":
-                db.delete_tasks(*await self._delete_tasks_recursively())
+                db.delete_tasks(await self._delete_tasks_recursively())
                 self._next_task_id = db.get_max_task_id() + 1
                 ialogger.update(
                     f"{entry.type.name} [{config.styles['LOGGER_HIGHLIGHT']}]"
