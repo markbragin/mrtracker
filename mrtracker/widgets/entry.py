@@ -29,9 +29,9 @@ class Entry(TextInput):
         self.task_id = data[0]
         self.parent_id = data[1]
         self.name = data[2]
-        self.today = data[3]
-        self.month = data[4]
-        self.total = data[5]
+        self.today = data[3] if data[3] else 0
+        self.month = data[4] if data[4] else 0
+        self.total = data[5] if data[5] else 0
 
     def on_key(self, event: events.Key) -> None:
         super().on_key(event)

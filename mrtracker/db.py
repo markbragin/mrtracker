@@ -2,7 +2,7 @@ import os
 import sqlite3
 from typing import List, Tuple
 
-from .config import ROOT_PKG_DIR, DB_NAME, USER_DATA_DIR
+from .config import DB_NAME, ROOT_PKG_DIR, USER_DATA_DIR
 
 
 def _init_db() -> None:
@@ -90,30 +90,28 @@ def fetch_full_info() -> List[Tuple]:
 
 def add_session(task_id: int, date: str, time: int) -> None:
     cur.execute(
-        f"INSERT INTO sessions (task_id, date, time) "
-        f"VALUES ('{task_id}', '{date}', {time})"
+        "INSERT INTO sessions (task_id, date, time) VALUES (?, ?, ?)",
+        (task_id, date, time),
     )
     conn.commit()
 
 
 def add_task(task: str, parent_id: int = 0) -> None:
-    cur.execute(f"INSERT INTO tasks (name) VALUES ('{task}')")
-    cur.execute(
-        "SELECT id from tasks " "WHERE id = (SELECT MAX(id) from tasks)"
-    )
+    cur.execute("INSERT INTO tasks (name) VALUES (?)", (task,))
+    cur.execute("SELECT id from tasks WHERE id = (SELECT MAX(id) from tasks)")
     task_id = cur.fetchone()[0]
-    cur.execute(f"INSERT INTO links VALUES ({task_id}, {parent_id})")
+    cur.execute("INSERT INTO links VALUES (?, ?)", (task_id, parent_id))
     conn.commit()
 
 
-def delete_tasks(*tasks: int) -> None:
-    task_ids = ", ".join(str(x) for x in tasks)
-    cur.execute(f"DELETE FROM tasks WHERE id in ({task_ids})")
+def delete_tasks(task_ids: list[int]) -> None:
+    placeholders = ", ".join("?" for i in task_ids)
+    cur.execute("DELETE FROM tasks WHERE id in (%s)" % placeholders, task_ids)
     conn.commit()
 
 
 def rename_task(id: int, new_name: str) -> None:
-    cur.execute(f"UPDATE tasks SET name = '{new_name}' WHERE id={id}")
+    cur.execute("UPDATE tasks SET name = (?) WHERE id=(?)", (new_name, id))
     conn.commit()
 
 
