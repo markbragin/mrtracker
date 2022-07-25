@@ -5,6 +5,7 @@ from textual.widget import Widget
 
 from ..stopwatch import sec_to_str
 from .entry import Entry, generate_empty_entry
+from ..config import config
 
 
 class Total(Widget, can_focus=False):
@@ -20,9 +21,10 @@ class Total(Widget, can_focus=False):
         self._data = data
 
     def render(self) -> RenderableType:
-        return Text(
-            f"Today: {sec_to_str(self._data.today)} "
-            + f"Month: {sec_to_str(self._data.month)} "
-            + f"Total: {sec_to_str(self._data.total)} ",
-            style="on black",
+        return Text().assemble(
+            f"Today: {sec_to_str(self._data.today)}   ",
+            f"Month: {sec_to_str(self._data.month)}   ",
+            f"Total: {sec_to_str(self._data.total)}",
+            style=config.styles["FOOTER"],
+            justify="center",
         )
