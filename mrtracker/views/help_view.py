@@ -1,5 +1,6 @@
 from rich.align import Align
 from rich.table import Table
+from textual.app import events
 from textual.views._dock_view import DockView
 
 from ..config import CONFIG_PATH, config
@@ -41,3 +42,9 @@ class HelpView(DockView):
                 " ".join(descrip.split("_")),
             )
         return table
+
+    async def on_key(self, event: events.Key) -> None:
+        if event.key in [config.tasklist_keys["go_down"], "down"]:
+            self.scrll.page_down()
+        elif event.key in [config.tasklist_keys["go_up"], "up"]:
+            self.scrll.page_up()
