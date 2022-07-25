@@ -1,5 +1,4 @@
 from rich.console import RenderableType
-from textual.app import events
 from textual.message import Message
 from textual.widgets import ScrollView
 
@@ -7,12 +6,6 @@ from textual.widgets import ScrollView
 class SimpleScrollView(ScrollView):
     async def update(self, content: RenderableType) -> None:
         await super().update(content)
-
-    async def on_key(self, event: events.Key) -> None:
-        if event.key == "j":
-            self.page_down()
-        elif event.key == "k":
-            self.page_up()
 
     async def handle_window_change(self, message: Message) -> None:
         message.stop()
@@ -27,3 +20,9 @@ class SimpleScrollView(ScrollView):
         self.hscroll.window_size = width
         self.vscroll.virtual_size = virtual_height
         self.vscroll.window_size = height
+
+    async def key_down(self) -> None:
+        pass
+
+    async def key_up(self) -> None:
+        pass

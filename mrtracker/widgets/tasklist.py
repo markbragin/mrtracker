@@ -34,6 +34,7 @@ class TaskList(NestedList):
     _action: Reactive[Action | None] = Reactive(None)
     current_task: Reactive[Entry | None] = Reactive(None)
     blocked: Reactive[bool] = Reactive(False)
+    upd_total: Reactive[bool] = Reactive(False)
 
     def __init__(
         self,
@@ -56,8 +57,8 @@ class TaskList(NestedList):
 
     async def _build_tree(self) -> None:
         for row in self._data:
+            self.id = row[0] - 1
             await self.add(row[1], row[2], Entry(row))
-
         self.sum_time_recursively()
 
     def sum_time_recursively(self, node_id: NodeID = NodeID(0)) -> tuple:
@@ -277,15 +278,16 @@ class TaskList(NestedList):
             ids.append(nd.data.task_id)
             self._collect_children_ids(nd, ids)
 
-    def _subtract_time(self, left: TreeNode, right: TreeNode) -> None:
-        left.data.today -= right.data.today
-        left.data.month -= right.data.month
-        left.data.total -= right.data.month
-
     def _subtract_from_parents(self, parent: TreeNode, node: TreeNode) -> None:
         self._subtract_time(parent, node)
         if parent.parent:
             self._subtract_from_parents(parent.parent, node)
+        self.upd_total = not self.upd_total
+
+    def _subtract_time(self, left: TreeNode, right: TreeNode) -> None:
+        left.data.today -= right.data.today
+        left.data.month -= right.data.month
+        left.data.total -= right.data.month
 
     def add_time(self, seconds: int, node: TreeNode | None = None) -> None:
         node = node if node else self.nodes[self.cursor]
@@ -293,10 +295,9 @@ class TaskList(NestedList):
         entry.today += seconds
         entry.month += seconds
         entry.total += seconds
-        if entry.type is EntryType.FOLDER:
-            return
         if node.parent:
             self.add_time(seconds, node.parent)
+        self.upd_total = not self.upd_total
 
     async def toggle_all_folders(self) -> None:
         if len(self.root.children) > 1:

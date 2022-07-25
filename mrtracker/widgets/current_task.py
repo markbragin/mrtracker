@@ -22,6 +22,10 @@ class CurrentTask(Widget, can_focus=False):
     def content(self) -> str:
         return self._content
 
+    @content.setter
+    def content(self, new_content: str) -> None:
+        self._content = new_content
+
     def render(self) -> RenderableType:
         if self._content:
             rendr = Align.center(self._content)

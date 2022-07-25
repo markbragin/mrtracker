@@ -16,13 +16,13 @@
             "add_folder": "n",
             "add_child_task": "a",
             "add_sibling_task": "s",
-            "delete_task": "x",
-            "toggle_folding": "z",
-            "toggle_folding_recursively": "Z",
+            "delete_task": "d",
+            "toggle_folding": "o",
+            "toggle_folding_recursively": "O",
             "go_to_parent": "p",
             "go_to_parent_folder": "P",
-            "toggle_all_folders": "o",
-            "toggle_all_folders_recursively": "O"
+            "toggle_all_folders": "z",
+            "toggle_all_folders_recursively": "Z"
         }
     },
     "styles": {
@@ -38,6 +38,7 @@
         "TIMER_BORDER": "white",
         "LOGGER_BORDER": "white",
         "LOGGER_ERROR_BORDER": "red",
-        "LOGGER_HIGHLIGHT": "blue"
+        "LOGGER_HIGHLIGHT": "blue",
+        "FOOTER": "white"
     }
 }
