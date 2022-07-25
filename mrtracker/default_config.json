@@ -16,7 +16,7 @@
             "add_folder": "n",
             "add_child_task": "a",
             "add_sibling_task": "s",
-            "delete_task": "x",
+            "delete_task": "d",
             "toggle_folding": "o",
             "toggle_folding_recursively": "O",
             "go_to_parent": "p",
