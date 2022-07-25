@@ -70,7 +70,7 @@ class TaskList(NestedList):
             child_data = self.sum_time_recursively(node.id)
             collected_data = self.sum_time(collected_data, child_data)
 
-        cur.data.time = self.sum_time(cur.data.time, collected_data)
+        cur.data.time = self.sum_time(cur.data.own_time, collected_data)
         return cur.data.time
 
     def sum_time(self, t1, t2) -> TimeTuple:
@@ -116,9 +116,11 @@ class TaskList(NestedList):
             if self._action is Action.ADD:
                 await self.handle_adding_task(cancel)
             elif self._action is Action.RENAME:
-                await self.handle_renaming_task(cancel)
+                self.handle_renaming_task(cancel)
             elif self._action is Action.DELETE:
                 await self.handle_deleting_task(cancel)
+            elif self._action is Action.RESET:
+                self.handle_resetting_task(cancel)
             self._action = None
             self._mode = Mode.NORMAL
         event.stop()
@@ -137,7 +139,7 @@ class TaskList(NestedList):
                 f"{entry.name}[/] added."
             )
 
-    async def handle_renaming_task(self, cancel: bool = False) -> None:
+    def handle_renaming_task(self, cancel: bool = False) -> None:
         entry = self.nodes[self.cursor].data
         if any((cancel, not entry.content, entry.name == entry.content)):
             return
@@ -164,6 +166,23 @@ class TaskList(NestedList):
             ialogger.update(
                 f"{entry.type.name} [{config.styles['LOGGER_HIGHLIGHT']}]"
                 + f"{entry.name}[/] has been removed."
+            )
+        else:
+            ialogger.update("Abort")
+
+    def handle_resetting_task(self, cancel: bool = False) -> None:
+        node = self.nodes[self.cursor]
+        entry = node.data
+        if cancel:
+            ialogger.update("Resetting canceled")
+        elif entry.content == "reset":
+            db.delete_sessions_by_task_ids([entry.task_id])
+            entry.reset_own_time()
+            self.sum_time_recursively()
+            self.upd_total = not self.upd_total
+            ialogger.update(
+                f"[{config.styles['LOGGER_HIGHLIGHT']}]{entry.name}[/] "
+                + "time has been reset"
             )
         else:
             ialogger.update("Abort")
@@ -195,11 +214,13 @@ class TaskList(NestedList):
         elif key == config.tasklist_keys["add_sibling_task"]:
             await self.add_sibling_task()
         elif key == config.tasklist_keys["delete_task"]:
-            await self.delete_task()
+            self.delete_task()
         elif key == config.tasklist_keys["toggle_all_folders"]:
             await self.toggle_all_folders()
         elif key == config.tasklist_keys["toggle_all_folders_recursively"]:
             await self.toggle_all_folders_recursively()
+        elif key == config.tasklist_keys["reset_task_time"]:
+            self.reset_task_time()
 
     def _handle_starting_task(self) -> None:
         if self.blocked:
@@ -215,14 +236,6 @@ class TaskList(NestedList):
                 ialogger.update("Select task, not project", error=True)
             else:
                 self.current_task = entry
-
-    def rename_task(self) -> None:
-        if not self._valid_cursor():
-            return
-        self._action = Action.RENAME
-        self._mode = Mode.INSERT
-        entry = self.nodes[self.cursor].data
-        entry.content = entry.name
 
     async def add_folder(self) -> None:
         await self.add_root_child(
@@ -257,12 +270,30 @@ class TaskList(NestedList):
         self._mode = Mode.INSERT
         entry.clear_content()
 
-    async def delete_task(self) -> None:
+    def delete_task(self) -> None:
         if not self._valid_cursor():
             return
         hl = config.styles["LOGGER_HIGHLIGHT"]
         ialogger.update(f"Type [{hl}]'delete'[/] and press [{hl}]enter[/]")
         self._action = Action.DELETE
+        self._mode = Mode.INSERT
+        entry = self.nodes[self.cursor].data
+        entry.clear_content()
+
+    def rename_task(self) -> None:
+        if not self._valid_cursor():
+            return
+        self._action = Action.RENAME
+        self._mode = Mode.INSERT
+        entry = self.nodes[self.cursor].data
+        entry.content = entry.name
+
+    def reset_task_time(self) -> None:
+        if not self._valid_cursor():
+            return
+        hl = config.styles["LOGGER_HIGHLIGHT"]
+        ialogger.update(f"Type [{hl}]'reset'[/] and press [{hl}]enter[/]")
+        self._action = Action.RESET
         self._mode = Mode.INSERT
         entry = self.nodes[self.cursor].data
         entry.clear_content()
@@ -288,9 +319,8 @@ class TaskList(NestedList):
 
     def add_time(self, seconds: int, node: TreeNode | None = None) -> None:
         node = node if node else self.nodes[self.cursor]
-        node.data.time = self.sum_time(node.data.time, (seconds,) * 3)
-        if node.parent:
-            self.add_time(seconds, node.parent)
+        node.data.own_time = self.sum_time(node.data.own_time, (seconds,) * 3)
+        self.sum_time_recursively()
 
     async def toggle_all_folders(self) -> None:
         if len(self.root.children) > 1:
