@@ -22,7 +22,8 @@
             "go_to_parent": "p",
             "go_to_parent_folder": "P",
             "toggle_all_folders": "z",
-            "toggle_all_folders_recursively": "Z"
+            "toggle_all_folders_recursively": "Z",
+            "reset_task_time": "u"
         }
     },
     "styles": {
