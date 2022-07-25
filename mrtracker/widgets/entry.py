@@ -18,21 +18,23 @@ class EntryType(Enum):
 
 class Entry(TextInput):
 
-    task_id: Reactive[int]
-    parent_id: Reactive[int]
-    name: Reactive[str]
-    time: Reactive[TimeTuple]
+    task_id: int
+    parent_id: int
+    name: str
+    own_time: TimeTuple
+    time: TimeTuple
 
     def __init__(self, data: tuple, name: str = "Entry") -> None:
         super().__init__(name=name)
         self.task_id = data[0]
         self.parent_id = data[1]
         self.name = data[2]
-        self.time = TimeTuple(
+        self.own_time = TimeTuple(
             data[3] if data[3] else 0,
             data[4] if data[4] else 0,
             data[5] if data[5] else 0,
         )
+        self.time = self.own_time
 
     def on_key(self, event: events.Key) -> None:
         super().on_key(event)
@@ -40,6 +42,9 @@ class Entry(TextInput):
     @property
     def type(self) -> EntryType:
         return EntryType.FOLDER if self.parent_id == 0 else EntryType.TASK
+
+    def reset_own_time(self) -> None:
+        self.own_time = TimeTuple(0, 0, 0)
 
     def render(
         self, mode: Mode = Mode.NORMAL, expanded: bool = False
