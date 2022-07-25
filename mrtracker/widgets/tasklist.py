@@ -34,6 +34,7 @@ class TaskList(NestedList):
     _action: Reactive[Action | None] = Reactive(None)
     current_task: Reactive[Entry | None] = Reactive(None)
     blocked: Reactive[bool] = Reactive(False)
+    upd_total: Reactive[bool] = Reactive(False)
 
     def __init__(
         self,
@@ -277,15 +278,16 @@ class TaskList(NestedList):
             ids.append(nd.data.task_id)
             self._collect_children_ids(nd, ids)
 
-    def _subtract_time(self, left: TreeNode, right: TreeNode) -> None:
-        left.data.today -= right.data.today
-        left.data.month -= right.data.month
-        left.data.total -= right.data.month
-
     def _subtract_from_parents(self, parent: TreeNode, node: TreeNode) -> None:
         self._subtract_time(parent, node)
         if parent.parent:
             self._subtract_from_parents(parent.parent, node)
+        self.upd_total = not self.upd_total
+
+    def _subtract_time(self, left: TreeNode, right: TreeNode) -> None:
+        left.data.today -= right.data.today
+        left.data.month -= right.data.month
+        left.data.total -= right.data.month
 
     def add_time(self, seconds: int, node: TreeNode | None = None) -> None:
         node = node if node else self.nodes[self.cursor]
@@ -295,6 +297,7 @@ class TaskList(NestedList):
         entry.total += seconds
         if node.parent:
             self.add_time(seconds, node.parent)
+        self.upd_total = not self.upd_total
 
     async def toggle_all_folders(self) -> None:
         if len(self.root.children) > 1:
