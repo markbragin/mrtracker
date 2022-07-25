@@ -110,6 +110,14 @@ def delete_tasks(task_ids: list[int]) -> None:
     conn.commit()
 
 
+def delete_sessions_by_task_ids(task_ids: list[int]) -> None:
+    placeholders = ", ".join("?" for i in task_ids)
+    cur.execute(
+        "DELETE FROM sessions WHERE task_id in (%s)" % placeholders, task_ids
+    )
+    conn.commit()
+
+
 def rename_task(id: int, new_name: str) -> None:
     cur.execute("UPDATE tasks SET name = (?) WHERE id=(?)", (new_name, id))
     conn.commit()
