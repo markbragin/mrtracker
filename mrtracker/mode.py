@@ -10,3 +10,4 @@ class Action(Enum):
     ADD = auto()
     RENAME = auto()
     DELETE = auto()
+    RESET = auto()
