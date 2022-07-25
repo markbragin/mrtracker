@@ -56,8 +56,8 @@ class TaskList(NestedList):
 
     async def _build_tree(self) -> None:
         for row in self._data:
+            self.id = row[0] - 1
             await self.add(row[1], row[2], Entry(row))
-
         self.sum_time_recursively()
 
     def sum_time_recursively(self, node_id: NodeID = NodeID(0)) -> tuple:
@@ -293,8 +293,6 @@ class TaskList(NestedList):
         entry.today += seconds
         entry.month += seconds
         entry.total += seconds
-        if entry.type is EntryType.FOLDER:
-            return
         if node.parent:
             self.add_time(seconds, node.parent)
 
