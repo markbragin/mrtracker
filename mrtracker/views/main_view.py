@@ -93,6 +93,7 @@ class MainView(GridView):
     def save_session(self) -> None:
         if self.save_data() and self.tasklist.current_task:
             self.tasklist.add_time(self.timer.time)
+            self.total.refresh()
         self.timer.restart_timer()
         self.tasklist.current_task = None
         ialogger.update("Your data saved. Timer reset.")

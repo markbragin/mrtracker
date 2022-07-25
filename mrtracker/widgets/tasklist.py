@@ -9,6 +9,7 @@ from textual.widgets import NodeID, TreeNode
 from .. import db
 from ..config import config
 from ..mode import Action, Mode
+from ..timetuple import TimeTuple
 from .entry import Entry, EntryType, generate_empty_entry
 from .in_app_logger import ialogger
 from .nested_list import NestedList
@@ -29,12 +30,12 @@ cyrillic_layout = dict(
 
 class TaskList(NestedList):
 
-    _mode: Reactive[Mode] = Reactive(Mode.NORMAL)
-    _next_task_id: int = 0
-    _action: Reactive[Action | None] = Reactive(None)
     current_task: Reactive[Entry | None] = Reactive(None)
     blocked: Reactive[bool] = Reactive(False)
     upd_total: Reactive[bool] = Reactive(False)
+    _mode: Reactive[Mode] = Reactive(Mode.NORMAL)
+    _action: Action | None = None
+    _next_task_id: int = 0
 
     def __init__(
         self,
@@ -61,22 +62,23 @@ class TaskList(NestedList):
             await self.add(row[1], row[2], Entry(row))
         self.sum_time_recursively()
 
-    def sum_time_recursively(self, node_id: NodeID = NodeID(0)) -> tuple:
+    def sum_time_recursively(self, node_id: NodeID = NodeID(0)) -> TimeTuple:
         cur = self.nodes[node_id]
         collected_data = (0, 0, 0)
 
         for node in cur.children:
             child_data = self.sum_time_recursively(node.id)
-            collected_data = self.sum_tuples(collected_data, child_data)
+            collected_data = self.sum_time(collected_data, child_data)
 
-        cur.data.today += collected_data[0]
-        cur.data.month += collected_data[1]
-        cur.data.total += collected_data[2]
+        cur.data.time = self.sum_time(cur.data.time, collected_data)
+        return cur.data.time
 
-        return (cur.data.today, cur.data.month, cur.data.total)
+    def sum_time(self, t1, t2) -> TimeTuple:
+        return TimeTuple(*map(sum, zip(t1, t2)))
 
-    def sum_tuples(self, t1, t2) -> tuple:
-        return tuple(map(sum, zip(t1, t2)))
+    def subtract_time(self, left, right) -> TimeTuple:
+        right = tuple(map(lambda x: -x, right))
+        return self.sum_time(left, right)
 
     async def go_down(self) -> None:
         await self.cursor_down()
@@ -156,6 +158,7 @@ class TaskList(NestedList):
         elif entry.content == "delete":
             db.delete_tasks(self._collect_task_ids())
             self._subtract_from_parents(node.parent, node)
+            self.upd_total = not self.upd_total
             await self.remove_node()
             self._next_task_id = db.get_max_task_id() + 1
             ialogger.update(
@@ -279,25 +282,15 @@ class TaskList(NestedList):
             self._collect_children_ids(nd, ids)
 
     def _subtract_from_parents(self, parent: TreeNode, node: TreeNode) -> None:
-        self._subtract_time(parent, node)
+        parent.data.time = self.subtract_time(parent.data.time, node.data.time)
         if parent.parent:
             self._subtract_from_parents(parent.parent, node)
-        self.upd_total = not self.upd_total
-
-    def _subtract_time(self, left: TreeNode, right: TreeNode) -> None:
-        left.data.today -= right.data.today
-        left.data.month -= right.data.month
-        left.data.total -= right.data.month
 
     def add_time(self, seconds: int, node: TreeNode | None = None) -> None:
         node = node if node else self.nodes[self.cursor]
-        entry = node.data
-        entry.today += seconds
-        entry.month += seconds
-        entry.total += seconds
+        node.data.time = self.sum_time(node.data.time, (seconds,) * 3)
         if node.parent:
             self.add_time(seconds, node.parent)
-        self.upd_total = not self.upd_total
 
     async def toggle_all_folders(self) -> None:
         if len(self.root.children) > 1:
@@ -336,7 +329,7 @@ class TaskList(NestedList):
 
     def _render_header(self) -> RenderableType:
         text_data = (
-            "Today".rjust(15, " ")
+            "Today".rjust(12, " ")
             + "Month".rjust(12, " ")
             + "Total".rjust(12, " ")
         )

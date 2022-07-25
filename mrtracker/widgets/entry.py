@@ -7,6 +7,7 @@ from textual.reactive import Reactive, events
 
 from ..mode import Mode
 from ..stopwatch import sec_to_str
+from ..timetuple import TimeTuple
 from .text_input import TextInput
 
 
@@ -20,18 +21,18 @@ class Entry(TextInput):
     task_id: Reactive[int]
     parent_id: Reactive[int]
     name: Reactive[str]
-    today: Reactive[int]
-    month: Reactive[int]
-    total: Reactive[int]
+    time: Reactive[TimeTuple]
 
     def __init__(self, data: tuple, name: str = "Entry") -> None:
         super().__init__(name=name)
         self.task_id = data[0]
         self.parent_id = data[1]
         self.name = data[2]
-        self.today = data[3] if data[3] else 0
-        self.month = data[4] if data[4] else 0
-        self.total = data[5] if data[5] else 0
+        self.time = TimeTuple(
+            data[3] if data[3] else 0,
+            data[4] if data[4] else 0,
+            data[5] if data[5] else 0,
+        )
 
     def on_key(self, event: events.Key) -> None:
         super().on_key(event)
@@ -51,12 +52,9 @@ class Entry(TextInput):
         return grid
 
     def _render_time(self) -> RenderableType:
-        return Text(
-            (
-                sec_to_str(self.today).ljust(12, " ")
-                + sec_to_str(self.month).ljust(12, " ")
-                + sec_to_str(self.total).ljust(12, " ")
-            ),
+        time_str = map(sec_to_str, self.time)
+        return Text.assemble(
+            *map(lambda x: x.ljust(12, " "), time_str),
             justify="right",
         )
 
