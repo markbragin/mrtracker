@@ -117,6 +117,8 @@ class TaskList(NestedList):
                 await self._handle_deleting_task(cancel)
             elif self._action is Action.RESET:
                 self._handle_resetting_task(cancel)
+            elif self._action is Action.RESET_REC:
+                self._handle_resetting_task_recursively(cancel)
             self._action = None
             self._mode = Mode.NORMAL
         event.stop()
@@ -183,6 +185,23 @@ class TaskList(NestedList):
         else:
             ialogger.update("Abort")
 
+    def _handle_resetting_task_recursively(self, cancel: bool = False) -> None:
+        node = self.nodes[self.cursor]
+        entry = node.data
+        if cancel:
+            ialogger.update("Resetting canceled")
+        elif entry.content == "reset":
+            db.delete_sessions_by_task_ids(self._collect_task_ids())
+            self.reset_time_recursively()
+            self.sum_time_recursively()
+            self.upd_total = not self.upd_total
+            ialogger.update(
+                f"[{config.styles['LOGGER_HIGHLIGHT']}]{entry.name}[/] "
+                + "time has been reset recursively"
+            )
+        else:
+            ialogger.update("Abort")
+
     async def _handle_keypress_in_normal_mode(self, event: events.Key) -> None:
         key = event.key.translate(cyrillic_layout)
         if event.key == config.tasklist_keys["start_task"]:
@@ -217,6 +236,8 @@ class TaskList(NestedList):
             await self.toggle_all_folders_recursively()
         elif key == config.tasklist_keys["reset_task_time"]:
             self.reset_task_time()
+        elif key == config.tasklist_keys["reset_task_time_recursively"]:
+            self.reset_task_time(recursively=True)
 
     def _handle_starting_task(self) -> None:
         if self.blocked:
@@ -284,15 +305,28 @@ class TaskList(NestedList):
         entry = self.nodes[self.cursor].data
         entry.content = entry.name
 
-    def reset_task_time(self) -> None:
+    def reset_task_time(self, recursively: bool = False) -> None:
         if not self._valid_cursor():
             return
+
+        entry = self.nodes[self.cursor].data
+        if recursively:
+            self._action = Action.RESET_REC
+        elif entry.type is EntryType.FOLDER:
+            ialogger.update("Can't reset folder time")
+            return
+        else:
+            self._action = Action.RESET
         hl = config.styles["LOGGER_HIGHLIGHT"]
         ialogger.update(f"Type [{hl}]'reset'[/] and press [{hl}]enter[/]")
-        self._action = Action.RESET
         self._mode = Mode.INSERT
-        entry = self.nodes[self.cursor].data
         entry.clear_content()
+
+    def reset_time_recursively(self, node: TreeNode | None = None) -> None:
+        node = node if node else self.nodes[self.cursor]
+        node.data.reset_own_time()
+        for nd in node.children:
+            self.reset_time_recursively(nd)
 
     def _valid_cursor(self) -> bool:
         return self.cursor not in [self.root.id, self.root.children[0].id]

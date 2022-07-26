@@ -11,3 +11,4 @@ class Action(Enum):
     RENAME = auto()
     DELETE = auto()
     RESET = auto()
+    RESET_REC = auto()
