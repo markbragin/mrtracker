@@ -6,6 +6,7 @@
             "quit": "ctrl+q",
             "switch_timer": "ctrl+p",
             "save_session": "ctrl+s",
+            "discard_session": "ctrl+]",
             "show_help": "ctrl+h"
         },
         "tasklist": {

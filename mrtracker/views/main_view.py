@@ -96,7 +96,7 @@ class MainView(GridView):
             self.total.refresh()
         self.timer.restart_timer()
         self.tasklist.current_task = None
-        ialogger.update("Your data saved. Timer reset.")
+        ialogger.update("Session saved. Timer reset.")
 
     def save_data(self) -> bool:
         if not (self.timer.time and self.tasklist.current_task):
@@ -107,3 +107,9 @@ class MainView(GridView):
             self.timer.time,
         )
         return True
+
+    def discard_session(self) -> None:
+        if self.timer._working:
+            self.timer.restart_timer()
+            self.tasklist.current_task = None
+            ialogger.update("Session discarded. Timer reset.")
