@@ -76,10 +76,6 @@ class TaskList(NestedList):
     def sum_time(self, t1, t2) -> TimeTuple:
         return TimeTuple(*map(sum, zip(t1, t2)))
 
-    def subtract_time(self, left, right) -> TimeTuple:
-        right = tuple(map(lambda x: -x, right))
-        return self.sum_time(left, right)
-
     async def go_down(self) -> None:
         await self.cursor_down()
 
@@ -105,28 +101,28 @@ class TaskList(NestedList):
 
     async def on_key(self, event: events.Key) -> None:
         if self._mode == Mode.INSERT:
-            await self.handle_keypress_in_insert_mode(event)
+            await self._handle_keypress_in_insert_mode(event)
         else:
-            await self.handle_keypress_in_normal_mode(event)
+            await self._handle_keypress_in_normal_mode(event)
 
-    async def handle_keypress_in_insert_mode(self, event: events.Key) -> None:
+    async def _handle_keypress_in_insert_mode(self, event: events.Key) -> None:
         self.nodes[self.cursor].data.on_key(event)
         if event.key in ["escape", "enter"]:
             cancel = event.key == "escape"
             if self._action is Action.ADD:
-                await self.handle_adding_task(cancel)
+                await self._handle_adding_task(cancel)
             elif self._action is Action.RENAME:
-                self.handle_renaming_task(cancel)
+                self._handle_renaming_task(cancel)
             elif self._action is Action.DELETE:
-                await self.handle_deleting_task(cancel)
+                await self._handle_deleting_task(cancel)
             elif self._action is Action.RESET:
-                self.handle_resetting_task(cancel)
+                self._handle_resetting_task(cancel)
             self._action = None
             self._mode = Mode.NORMAL
         event.stop()
         self.refresh()
 
-    async def handle_adding_task(self, cancel: bool = False) -> None:
+    async def _handle_adding_task(self, cancel: bool = False) -> None:
         entry = self.nodes[self.cursor].data
         if entry.content == entry.name == "" or cancel:
             await self.remove_node()
@@ -139,7 +135,7 @@ class TaskList(NestedList):
                 f"{entry.name}[/] added."
             )
 
-    def handle_renaming_task(self, cancel: bool = False) -> None:
+    def _handle_renaming_task(self, cancel: bool = False) -> None:
         entry = self.nodes[self.cursor].data
         if any((cancel, not entry.content, entry.name == entry.content)):
             return
@@ -152,16 +148,16 @@ class TaskList(NestedList):
             entry.name = entry.content
             db.rename_task(entry.task_id, entry.name)
 
-    async def handle_deleting_task(self, cancel: bool = False) -> None:
+    async def _handle_deleting_task(self, cancel: bool = False) -> None:
         node = self.nodes[self.cursor]
         entry = node.data
         if cancel:
             ialogger.update("Deletion canceled")
         elif entry.content == "delete":
             db.delete_tasks(self._collect_task_ids())
-            self._subtract_from_parents(node.parent, node)
             self.upd_total = not self.upd_total
             await self.remove_node()
+            self.sum_time_recursively()
             self._next_task_id = db.get_max_task_id() + 1
             ialogger.update(
                 f"{entry.type.name} [{config.styles['LOGGER_HIGHLIGHT']}]"
@@ -170,7 +166,7 @@ class TaskList(NestedList):
         else:
             ialogger.update("Abort")
 
-    def handle_resetting_task(self, cancel: bool = False) -> None:
+    def _handle_resetting_task(self, cancel: bool = False) -> None:
         node = self.nodes[self.cursor]
         entry = node.data
         if cancel:
@@ -187,7 +183,7 @@ class TaskList(NestedList):
         else:
             ialogger.update("Abort")
 
-    async def handle_keypress_in_normal_mode(self, event: events.Key) -> None:
+    async def _handle_keypress_in_normal_mode(self, event: events.Key) -> None:
         key = event.key.translate(cyrillic_layout)
         if event.key == config.tasklist_keys["start_task"]:
             self._handle_starting_task()
@@ -311,11 +307,6 @@ class TaskList(NestedList):
         for nd in node.children:
             ids.append(nd.data.task_id)
             self._collect_children_ids(nd, ids)
-
-    def _subtract_from_parents(self, parent: TreeNode, node: TreeNode) -> None:
-        parent.data.time = self.subtract_time(parent.data.time, node.data.time)
-        if parent.parent:
-            self._subtract_from_parents(parent.parent, node)
 
     def add_time(self, seconds: int, node: TreeNode | None = None) -> None:
         node = node if node else self.nodes[self.cursor]
