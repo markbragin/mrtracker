@@ -182,7 +182,7 @@ class TaskList(NestedList):
         elif entry.content == "reset":
             if recursively:
                 db.delete_sessions_by_task_ids(self._collect_task_ids())
-                self.reset_time_recursively()
+                self._reset_time_recursively()
             else:
                 db.delete_sessions_by_task_ids([entry.task_id])
                 entry.reset_own_time()
@@ -289,8 +289,8 @@ class TaskList(NestedList):
         entry.clear_content()
         hl = config.styles["LOGGER_HIGHLIGHT"]
         ialogger.update(
-            "Delete\n"
-            f"Type [{hl}]'delete'[/] and press [{hl}]enter[/]"
+            "[b]Delete[/]\n"
+            + f"Type [{hl}]'delete'[/] and press [{hl}]enter[/]"
         )
 
     def rename_task(self) -> None:
@@ -300,7 +300,7 @@ class TaskList(NestedList):
         self._mode = Mode.INSERT
         entry = self.nodes[self.cursor].data
         entry.content = entry.name
-        ialogger.update(f"Rename\nType new name")
+        ialogger.update(f"[b]Rename[/]\nType new name")
 
     def reset_task_time(self, recursively: bool = False) -> None:
         if not self._valid_cursor():
@@ -310,15 +310,16 @@ class TaskList(NestedList):
         if recursively:
             self._action = Action.RESET_REC
         elif entry.type is EntryType.FOLDER:
-            ialogger.update("Can't reset folder time")
+            ialogger.update("Can't reset folder time", error=True)
             return
         else:
             self._action = Action.RESET
         self._mode = Mode.INSERT
         entry.clear_content()
         hl = config.styles["LOGGER_HIGHLIGHT"]
+        res = "Reset recursively" if recursively else "Reset"
         ialogger.update(
-            f"{'reset recursively' if recursively else 'reset'}\n"
+            f"[b]{res}[/]\n"
             + f"Type [{hl}]'reset'[/] and press [{hl}]enter[/]"
         )
 
@@ -341,11 +342,11 @@ class TaskList(NestedList):
         node.data.own_time = self.sum_time(node.data.own_time, (seconds,) * 3)
         self.sum_time_recursively()
 
-    def reset_time_recursively(self, node: TreeNode | None = None) -> None:
+    def _reset_time_recursively(self, node: TreeNode | None = None) -> None:
         node = node if node else self.nodes[self.cursor]
         node.data.reset_own_time()
         for nd in node.children:
-            self.reset_time_recursively(nd)
+            self._reset_time_recursively(nd)
 
     async def toggle_all_folders(self) -> None:
         if len(self.root.children) > 1:
