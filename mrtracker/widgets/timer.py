@@ -26,6 +26,10 @@ class Timer(Widget, can_focus=False):
     @property
     def time_str(self) -> str:
         return self.timer.get_elapsed_time_str()
+    
+    @property
+    def working(self) -> bool:
+        return self._working
 
     def switch_timer(self):
         self.timer.switch()

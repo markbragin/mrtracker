@@ -6,6 +6,7 @@
             "quit": "ctrl+q",
             "switch_timer": "ctrl+p",
             "save_session": "ctrl+s",
+            "discard_session": "ctrl+]",
             "show_help": "ctrl+h"
         },
         "tasklist": {
@@ -22,7 +23,9 @@
             "go_to_parent": "p",
             "go_to_parent_folder": "P",
             "toggle_all_folders": "z",
-            "toggle_all_folders_recursively": "Z"
+            "toggle_all_folders_recursively": "Z",
+            "reset_task_time": "u",
+            "reset_task_time_recursively": "U"
         }
     },
     "styles": {

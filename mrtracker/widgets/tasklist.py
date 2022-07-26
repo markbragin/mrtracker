@@ -9,6 +9,7 @@ from textual.widgets import NodeID, TreeNode
 from .. import db
 from ..config import config
 from ..mode import Action, Mode
+from ..timetuple import TimeTuple
 from .entry import Entry, EntryType, generate_empty_entry
 from .in_app_logger import ialogger
 from .nested_list import NestedList
@@ -29,12 +30,12 @@ cyrillic_layout = dict(
 
 class TaskList(NestedList):
 
-    _mode: Reactive[Mode] = Reactive(Mode.NORMAL)
-    _next_task_id: int = 0
-    _action: Reactive[Action | None] = Reactive(None)
     current_task: Reactive[Entry | None] = Reactive(None)
     blocked: Reactive[bool] = Reactive(False)
     upd_total: Reactive[bool] = Reactive(False)
+    _mode: Reactive[Mode] = Reactive(Mode.NORMAL)
+    _action: Action | None = None
+    _next_task_id: int = 0
 
     def __init__(
         self,
@@ -61,22 +62,19 @@ class TaskList(NestedList):
             await self.add(row[1], row[2], Entry(row))
         self.sum_time_recursively()
 
-    def sum_time_recursively(self, node_id: NodeID = NodeID(0)) -> tuple:
+    def sum_time_recursively(self, node_id: NodeID = NodeID(0)) -> TimeTuple:
         cur = self.nodes[node_id]
         collected_data = (0, 0, 0)
 
         for node in cur.children:
             child_data = self.sum_time_recursively(node.id)
-            collected_data = self.sum_tuples(collected_data, child_data)
+            collected_data = self.sum_time(collected_data, child_data)
 
-        cur.data.today += collected_data[0]
-        cur.data.month += collected_data[1]
-        cur.data.total += collected_data[2]
+        cur.data.time = self.sum_time(cur.data.own_time, collected_data)
+        return cur.data.time
 
-        return (cur.data.today, cur.data.month, cur.data.total)
-
-    def sum_tuples(self, t1, t2) -> tuple:
-        return tuple(map(sum, zip(t1, t2)))
+    def sum_time(self, t1, t2) -> TimeTuple:
+        return TimeTuple(*map(sum, zip(t1, t2)))
 
     async def go_down(self) -> None:
         await self.cursor_down()
@@ -103,28 +101,33 @@ class TaskList(NestedList):
 
     async def on_key(self, event: events.Key) -> None:
         if self._mode == Mode.INSERT:
-            await self.handle_keypress_in_insert_mode(event)
+            await self._handle_keypress_in_insert_mode(event)
         else:
-            await self.handle_keypress_in_normal_mode(event)
+            await self._handle_keypress_in_normal_mode(event)
 
-    async def handle_keypress_in_insert_mode(self, event: events.Key) -> None:
+    async def _handle_keypress_in_insert_mode(self, event: events.Key) -> None:
         self.nodes[self.cursor].data.on_key(event)
         if event.key in ["escape", "enter"]:
             cancel = event.key == "escape"
             if self._action is Action.ADD:
-                await self.handle_adding_task(cancel)
+                await self._handle_adding_task(cancel)
             elif self._action is Action.RENAME:
-                await self.handle_renaming_task(cancel)
+                self._handle_renaming_task(cancel)
             elif self._action is Action.DELETE:
-                await self.handle_deleting_task(cancel)
+                await self._handle_deleting_task(cancel)
+            elif self._action is Action.RESET:
+                self._handle_resetting_task(cancel)
+            elif self._action is Action.RESET_REC:
+                self._handle_resetting_task(cancel, recursively=True)
             self._action = None
             self._mode = Mode.NORMAL
         event.stop()
         self.refresh()
 
-    async def handle_adding_task(self, cancel: bool = False) -> None:
+    async def _handle_adding_task(self, cancel: bool = False) -> None:
         entry = self.nodes[self.cursor].data
         if entry.content == entry.name == "" or cancel:
+            ialogger.update("Canceled")
             await self.remove_node()
         else:
             entry.name = entry.content
@@ -135,9 +138,10 @@ class TaskList(NestedList):
                 f"{entry.name}[/] added."
             )
 
-    async def handle_renaming_task(self, cancel: bool = False) -> None:
+    def _handle_renaming_task(self, cancel: bool = False) -> None:
         entry = self.nodes[self.cursor].data
         if any((cancel, not entry.content, entry.name == entry.content)):
+            ialogger.update("Canceled")
             return
         else:
             ialogger.update(
@@ -148,24 +152,50 @@ class TaskList(NestedList):
             entry.name = entry.content
             db.rename_task(entry.task_id, entry.name)
 
-    async def handle_deleting_task(self, cancel: bool = False) -> None:
+    async def _handle_deleting_task(self, cancel: bool = False) -> None:
         node = self.nodes[self.cursor]
         entry = node.data
         if cancel:
-            ialogger.update("Deletion canceled")
+            ialogger.update("Canceled")
         elif entry.content == "delete":
             db.delete_tasks(self._collect_task_ids())
-            self._subtract_from_parents(node.parent, node)
             await self.remove_node()
+            self.sum_time_recursively()
+            self.upd_total = not self.upd_total
             self._next_task_id = db.get_max_task_id() + 1
             ialogger.update(
                 f"{entry.type.name} [{config.styles['LOGGER_HIGHLIGHT']}]"
                 + f"{entry.name}[/] has been removed."
             )
         else:
-            ialogger.update("Abort")
+            ialogger.update("Canceled")
 
-    async def handle_keypress_in_normal_mode(self, event: events.Key) -> None:
+    def _handle_resetting_task(
+        self,
+        cancel: bool = False,
+        recursively: bool = False,
+    ) -> None:
+        node = self.nodes[self.cursor]
+        entry = node.data
+        if cancel:
+            ialogger.update("Canceled")
+        elif entry.content == "reset":
+            if recursively:
+                db.delete_sessions_by_task_ids(self._collect_task_ids())
+                self._reset_time_recursively()
+            else:
+                db.delete_sessions_by_task_ids([entry.task_id])
+                entry.reset_own_time()
+            self.sum_time_recursively()
+            self.upd_total = not self.upd_total
+            ialogger.update(
+                f"[{config.styles['LOGGER_HIGHLIGHT']}]{entry.name}[/] "
+                + f"time has been reset {'recursively' if recursively else ''}"
+            )
+        else:
+            ialogger.update("Canceled")
+
+    async def _handle_keypress_in_normal_mode(self, event: events.Key) -> None:
         key = event.key.translate(cyrillic_layout)
         if event.key == config.tasklist_keys["start_task"]:
             self._handle_starting_task()
@@ -192,11 +222,15 @@ class TaskList(NestedList):
         elif key == config.tasklist_keys["add_sibling_task"]:
             await self.add_sibling_task()
         elif key == config.tasklist_keys["delete_task"]:
-            await self.delete_task()
+            self.delete_task()
         elif key == config.tasklist_keys["toggle_all_folders"]:
             await self.toggle_all_folders()
         elif key == config.tasklist_keys["toggle_all_folders_recursively"]:
             await self.toggle_all_folders_recursively()
+        elif key == config.tasklist_keys["reset_task_time"]:
+            self.reset_task_time()
+        elif key == config.tasklist_keys["reset_task_time_recursively"]:
+            self.reset_task_time(recursively=True)
 
     def _handle_starting_task(self) -> None:
         if self.blocked:
@@ -212,14 +246,6 @@ class TaskList(NestedList):
                 ialogger.update("Select task, not project", error=True)
             else:
                 self.current_task = entry
-
-    def rename_task(self) -> None:
-        if not self._valid_cursor():
-            return
-        self._action = Action.RENAME
-        self._mode = Mode.INSERT
-        entry = self.nodes[self.cursor].data
-        entry.content = entry.name
 
     async def add_folder(self) -> None:
         await self.add_root_child(
@@ -254,15 +280,48 @@ class TaskList(NestedList):
         self._mode = Mode.INSERT
         entry.clear_content()
 
-    async def delete_task(self) -> None:
+    def delete_task(self) -> None:
         if not self._valid_cursor():
             return
-        hl = config.styles["LOGGER_HIGHLIGHT"]
-        ialogger.update(f"Type [{hl}]'delete'[/] and press [{hl}]enter[/]")
         self._action = Action.DELETE
         self._mode = Mode.INSERT
         entry = self.nodes[self.cursor].data
         entry.clear_content()
+        hl = config.styles["LOGGER_HIGHLIGHT"]
+        ialogger.update(
+            "[b]Delete[/]\n"
+            + f"Type [{hl}]'delete'[/] and press [{hl}]enter[/]"
+        )
+
+    def rename_task(self) -> None:
+        if not self._valid_cursor():
+            return
+        self._action = Action.RENAME
+        self._mode = Mode.INSERT
+        entry = self.nodes[self.cursor].data
+        entry.content = entry.name
+        ialogger.update(f"[b]Rename[/]\nType new name")
+
+    def reset_task_time(self, recursively: bool = False) -> None:
+        if not self._valid_cursor():
+            return
+
+        entry = self.nodes[self.cursor].data
+        if recursively:
+            self._action = Action.RESET_REC
+        elif entry.type is EntryType.FOLDER:
+            ialogger.update("Can't reset folder time", error=True)
+            return
+        else:
+            self._action = Action.RESET
+        self._mode = Mode.INSERT
+        entry.clear_content()
+        hl = config.styles["LOGGER_HIGHLIGHT"]
+        res = "Reset recursively" if recursively else "Reset"
+        ialogger.update(
+            f"[b]{res}[/]\n"
+            + f"Type [{hl}]'reset'[/] and press [{hl}]enter[/]"
+        )
 
     def _valid_cursor(self) -> bool:
         return self.cursor not in [self.root.id, self.root.children[0].id]
@@ -278,26 +337,16 @@ class TaskList(NestedList):
             ids.append(nd.data.task_id)
             self._collect_children_ids(nd, ids)
 
-    def _subtract_from_parents(self, parent: TreeNode, node: TreeNode) -> None:
-        self._subtract_time(parent, node)
-        if parent.parent:
-            self._subtract_from_parents(parent.parent, node)
-        self.upd_total = not self.upd_total
-
-    def _subtract_time(self, left: TreeNode, right: TreeNode) -> None:
-        left.data.today -= right.data.today
-        left.data.month -= right.data.month
-        left.data.total -= right.data.month
-
     def add_time(self, seconds: int, node: TreeNode | None = None) -> None:
         node = node if node else self.nodes[self.cursor]
-        entry = node.data
-        entry.today += seconds
-        entry.month += seconds
-        entry.total += seconds
-        if node.parent:
-            self.add_time(seconds, node.parent)
-        self.upd_total = not self.upd_total
+        node.data.own_time = self.sum_time(node.data.own_time, (seconds,) * 3)
+        self.sum_time_recursively()
+
+    def _reset_time_recursively(self, node: TreeNode | None = None) -> None:
+        node = node if node else self.nodes[self.cursor]
+        node.data.reset_own_time()
+        for nd in node.children:
+            self._reset_time_recursively(nd)
 
     async def toggle_all_folders(self) -> None:
         if len(self.root.children) > 1:
@@ -336,7 +385,7 @@ class TaskList(NestedList):
 
     def _render_header(self) -> RenderableType:
         text_data = (
-            "Today".rjust(15, " ")
+            "Today".rjust(12, " ")
             + "Month".rjust(12, " ")
             + "Total".rjust(12, " ")
         )

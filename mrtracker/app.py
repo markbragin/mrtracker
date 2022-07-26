@@ -56,3 +56,6 @@ class TimeTracker(App):
 
     async def action_show_help(self) -> None:
         self.current_view = self.help_v
+
+    def action_discard_session(self) -> None:
+        self.main_v.discard_session()
