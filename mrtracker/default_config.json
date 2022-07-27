@@ -10,22 +10,23 @@
             "show_help": "ctrl+h"
         },
         "tasklist": {
-            "start_task": "enter",
             "go_down": "j",
             "go_up": "k",
-            "rename_task": "r",
-            "add_folder": "n",
+            "go_to_parent": "p",
+            "add_new_task": "n",
+            "add_new_folder": "N",
             "add_child_task": "a",
+            "add_child_folder": "A",
             "add_sibling_task": "s",
-            "delete_task": "d",
+            "add_sibling_folder": "S",
+            "rename_entry": "r",
+            "delete_entry": "d",
+            "move_entry": "m",
             "toggle_folding": "o",
             "toggle_folding_recursively": "O",
-            "go_to_parent": "p",
-            "go_to_parent_folder": "P",
-            "toggle_all_folders": "z",
-            "toggle_all_folders_recursively": "Z",
-            "reset_task_time": "u",
-            "reset_task_time_recursively": "U"
+            "toggle_all_entries_recursively": "z",
+            "reset_entry_time": "u",
+            "reset_entry_time_recursively": "U"
         }
     },
     "styles": {
@@ -42,6 +43,7 @@
         "LOGGER_BORDER": "white",
         "LOGGER_ERROR_BORDER": "red",
         "LOGGER_HIGHLIGHT": "blue",
-        "FOOTER": "white"
+        "FOOTER": "white",
+        "SELECTED_ENTRY": "red"
     }
 }
