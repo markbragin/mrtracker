@@ -40,7 +40,7 @@ class TaskList(NestedList):
     def __init__(
         self,
         label: TextType = "TaskList",
-        data: Entry = generate_empty_entry(0, -1),
+        data: Entry = generate_empty_entry(0, -1, "f"),
         name: str | None = None,
         padding: PaddingDimensions = 0,
     ) -> None:
@@ -90,12 +90,6 @@ class TaskList(NestedList):
         while self.cursor != parent.id:
             await self.cursor_up()
 
-    async def go_to_parent_folder(self) -> None:
-        if self.nodes[self.cursor].parent in [None, self.root.id]:
-            return
-        while self.nodes[self.cursor].parent is not self.root:
-            await self.cursor_up()
-
     async def on_focus(self) -> None:
         self._mode = Mode.NORMAL
 
@@ -114,11 +108,11 @@ class TaskList(NestedList):
             elif self._action is Action.RENAME:
                 self._handle_renaming_task(cancel)
             elif self._action is Action.DELETE:
-                await self._handle_deleting_task(cancel)
+                await self._handle_deleting_entry(cancel)
             elif self._action is Action.RESET:
-                self._handle_resetting_task(cancel)
+                self._handle_resetting_task_time(cancel)
             elif self._action is Action.RESET_REC:
-                self._handle_resetting_task(cancel, recursively=True)
+                self._handle_resetting_task_time(cancel, recursively=True)
             self._action = None
             self._mode = Mode.NORMAL
         event.stop()
@@ -131,11 +125,11 @@ class TaskList(NestedList):
             await self.remove_node()
         else:
             entry.name = entry.content
-            db.add_task(entry.name, entry.parent_id)
+            db.add_task(entry.name, entry.parent_id, entry.etype.value)
             self._next_task_id += 1
+            hl = config.styles["LOGGER_HIGHLIGHT"]
             ialogger.update(
-                f"{entry.type.name} [{config.styles['LOGGER_HIGHLIGHT']}]"
-                f"{entry.name}[/] added."
+                f"{entry.etype.name.capitalize()} [{hl}]{entry.name}[/] added."
             )
 
     def _handle_renaming_task(self, cancel: bool = False) -> None:
@@ -145,14 +139,14 @@ class TaskList(NestedList):
             return
         else:
             ialogger.update(
-                f"{entry.type.name} renamed "
+                f"{entry.etype.name.capitalize()} renamed "
                 f"[{config.styles['LOGGER_HIGHLIGHT']}]{entry.name}[/] -> "
                 f"[{config.styles['LOGGER_HIGHLIGHT']}]{entry.content}[/]."
             )
             entry.name = entry.content
             db.rename_task(entry.task_id, entry.name)
 
-    async def _handle_deleting_task(self, cancel: bool = False) -> None:
+    async def _handle_deleting_entry(self, cancel: bool = False) -> None:
         node = self.nodes[self.cursor]
         entry = node.data
         if cancel:
@@ -163,14 +157,15 @@ class TaskList(NestedList):
             self.sum_time_recursively()
             self.upd_total = not self.upd_total
             self._next_task_id = db.get_max_task_id() + 1
+            hl = config.styles["LOGGER_HIGHLIGHT"]
             ialogger.update(
-                f"{entry.type.name} [{config.styles['LOGGER_HIGHLIGHT']}]"
-                + f"{entry.name}[/] has been removed."
+                f"{entry.etype.name.capitalize()} "
+                + f"[{hl}]{entry.name}[/] has been removed."
             )
         else:
             ialogger.update("Canceled")
 
-    def _handle_resetting_task(
+    def _handle_resetting_task_time(
         self,
         cancel: bool = False,
         recursively: bool = False,
@@ -201,36 +196,39 @@ class TaskList(NestedList):
             self._handle_starting_task()
         elif self.blocked:
             return
-        elif key == config.tasklist_keys["rename_task"]:
-            self.rename_task()
         elif key in [config.tasklist_keys["go_down"], "down"]:
             await self.go_down()
         elif key in [config.tasklist_keys["go_up"], "up"]:
             await self.go_up()
+        elif key == config.tasklist_keys["go_to_parent"]:
+            await self.go_to_parent()
+        elif key == config.tasklist_keys["rename_entry"]:
+            self.rename_entry()
+        elif key == config.tasklist_keys["delete_entry"]:
+            self.delete_entry()
+        elif key == config.tasklist_keys["add_new_task"]:
+            await self.add_new_entry(EntryType.TASK)
+        elif key == config.tasklist_keys["add_new_folder"]:
+            await self.add_new_entry(EntryType.FOLDER)
+        elif key == config.tasklist_keys["add_child_task"]:
+            await self.add_child_entry(EntryType.TASK)
+        elif key == config.tasklist_keys["add_child_folder"]:
+            await self.add_child_entry(EntryType.FOLDER)
+        elif key == config.tasklist_keys["add_sibling_task"]:
+            await self.add_sibling_entry(EntryType.TASK)
+        elif key == config.tasklist_keys["add_sibling_folder"]:
+            await self.add_sibling_entry(EntryType.FOLDER)
         elif key == config.tasklist_keys["toggle_folding"]:
             await self.toggle_folding()
         elif key == config.tasklist_keys["toggle_folding_recursively"]:
             await self.toggle_folding_recursively()
-        elif key == config.tasklist_keys["go_to_parent"]:
-            await self.go_to_parent()
-        elif key == config.tasklist_keys["go_to_parent_folder"]:
-            await self.go_to_parent_folder()
-        elif key == config.tasklist_keys["add_folder"]:
-            await self.add_folder()
-        elif key == config.tasklist_keys["add_child_task"]:
-            await self.add_child_task()
-        elif key == config.tasklist_keys["add_sibling_task"]:
-            await self.add_sibling_task()
-        elif key == config.tasklist_keys["delete_task"]:
-            self.delete_task()
-        elif key == config.tasklist_keys["toggle_all_folders"]:
-            await self.toggle_all_folders()
-        elif key == config.tasklist_keys["toggle_all_folders_recursively"]:
-            await self.toggle_all_folders_recursively()
-        elif key == config.tasklist_keys["reset_task_time"]:
-            self.reset_task_time()
-        elif key == config.tasklist_keys["reset_task_time_recursively"]:
-            self.reset_task_time(recursively=True)
+        elif key == config.tasklist_keys["toggle_all_entries_recursively"]:
+            await self.toggle_all_entries_recursively()
+            await self._cur_up_to_root_child()
+        elif key == config.tasklist_keys["reset_entry_time"]:
+            self.reset_entry_time()
+        elif key == config.tasklist_keys["reset_entry_time_recursively"]:
+            self.reset_entry_time(recursively=True)
 
     def _handle_starting_task(self) -> None:
         if self.blocked:
@@ -242,45 +240,56 @@ class TaskList(NestedList):
             return
         else:
             entry = self.nodes[self.cursor].data
-            if entry.type is EntryType.FOLDER:
-                ialogger.update("Select task, not project", error=True)
+            if entry.etype is EntryType.FOLDER:
+                ialogger.update("Select task, not folder", error=True)
             else:
                 self.current_task = entry
 
-    async def add_folder(self) -> None:
+    async def add_new_entry(self, etype: EntryType) -> None:
         await self.add_root_child(
-            "", generate_empty_entry(self._next_task_id, 0)
+            f"{etype.name}",
+            generate_empty_entry(self._next_task_id, 0, etype.value),
         )
         self._action = Action.ADD
         self._mode = Mode.INSERT
         entry = self.nodes[self.cursor].data
         entry.clear_content()
 
-    async def add_child_task(self) -> None:
+    async def add_child_entry(self, etype: EntryType) -> None:
         if not self._valid_cursor():
-            ialogger.update("Create project first", error=True)
             return
-        entry = self.nodes[self.cursor].data
+        node = self.nodes[self.cursor]
+        entry = node.data
+        if etype is EntryType.FOLDER is not node.data.etype:
+            return
         await self.add_child(
-            "", generate_empty_entry(self._next_task_id, entry.task_id)
+            f"{etype.name}",
+            generate_empty_entry(
+                self._next_task_id, entry.task_id, etype.value
+            ),
         )
         self._action = Action.ADD
         self._mode = Mode.INSERT
         entry.clear_content()
 
-    async def add_sibling_task(self) -> None:
+    async def add_sibling_entry(self, etype: EntryType) -> None:
         if not self._valid_cursor():
-            ialogger.update("Create project first", error=True)
             return
-        entry = self.nodes[self.cursor].data
+        node = self.nodes[self.cursor]
+        entry = node.data
+        if etype is EntryType.FOLDER is not node.parent.data.etype:
+            return
         await self.add_sibling(
-            "", generate_empty_entry(self._next_task_id, entry.parent_id)
+            f"{etype.name}",
+            generate_empty_entry(
+                self._next_task_id, entry.parent_id, etype.value
+            ),
         )
         self._action = Action.ADD
         self._mode = Mode.INSERT
         entry.clear_content()
 
-    def delete_task(self) -> None:
+    def delete_entry(self) -> None:
         if not self._valid_cursor():
             return
         self._action = Action.DELETE
@@ -293,7 +302,7 @@ class TaskList(NestedList):
             + f"Type [{hl}]'delete'[/] and press [{hl}]enter[/]"
         )
 
-    def rename_task(self) -> None:
+    def rename_entry(self) -> None:
         if not self._valid_cursor():
             return
         self._action = Action.RENAME
@@ -302,14 +311,14 @@ class TaskList(NestedList):
         entry.content = entry.name
         ialogger.update(f"[b]Rename[/]\nType new name")
 
-    def reset_task_time(self, recursively: bool = False) -> None:
+    def reset_entry_time(self, recursively: bool = False) -> None:
         if not self._valid_cursor():
             return
 
         entry = self.nodes[self.cursor].data
         if recursively:
             self._action = Action.RESET_REC
-        elif entry.type is EntryType.FOLDER:
+        elif entry.etype is EntryType.FOLDER:
             ialogger.update("Can't reset folder time", error=True)
             return
         else:
@@ -348,19 +357,12 @@ class TaskList(NestedList):
         for nd in node.children:
             self._reset_time_recursively(nd)
 
-    async def toggle_all_folders(self) -> None:
-        if len(self.root.children) > 1:
-            for node in self.root.children:
-                await node.expand(not self.root.children[-1].expanded)
-            await self.go_to_parent_folder()
-
-    async def toggle_all_folders_recursively(self) -> None:
+    async def toggle_all_entries_recursively(self) -> None:
         if len(self.root.children) > 1:
             for node in self.root.children:
                 await self.toggle_folding_recursively(
                     node, not self.root.children[-1].expanded
                 )
-            await self.go_to_parent_folder()
 
     def render(self) -> RenderableType:
         return Panel(self._tree, border_style=config.styles["TASKLIST_BORDER"])
