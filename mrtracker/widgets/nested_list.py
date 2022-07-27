@@ -18,13 +18,13 @@ class NestedList(TreeControl):
     async def add_child(self, label: TextType, data) -> None:
         await self.add(self.cursor, label=label, data=data)
         await self.nodes[self.cursor].expand()
-        await self._cur_to_latest_child()
+        self._cur_to_latest_child()
 
     async def add_sibling(self, label: TextType, data) -> None:
         node = self.nodes[self.cursor]
         if node is self.root:
             return
-        await self._cur_to_parent()
+        self._cur_to_parent()
         await self.add_child(label, data)
 
     async def add_root_child(self, label: TextType, data) -> None:
@@ -47,20 +47,16 @@ class NestedList(TreeControl):
         node.parent.children.remove(node)
         del self.nodes[node.id]
 
-    async def _cur_to_latest_child(self) -> None:
-        node_id = self.id
-        while self.cursor != node_id:
-            await self.cursor_down()
+    def _cur_to_latest_child(self) -> None:
+        self.cursor = self.id
 
-    async def _cur_to_parent(self) -> None:
+    def _cur_to_parent(self) -> None:
         parent = self.nodes[self.cursor].parent
-        if parent:
-            while self.cursor != parent.id:
-                await self.cursor_up()
+        self.cursor = parent.id if parent else self.cursor
 
-    async def _cur_up_to_root_child(self) -> None:
+    def _cur_up_to_root_child(self) -> None:
         while self.nodes[self.cursor].parent is not self.root:
-            await self._cur_to_parent()
+            self._cur_to_parent()
 
     async def _cur_to_next_sibling(self) -> None:
         sibling = self.nodes[self.cursor].next_sibling
