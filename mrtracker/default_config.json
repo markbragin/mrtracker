@@ -43,6 +43,7 @@
         "LOGGER_BORDER": "white",
         "LOGGER_ERROR_BORDER": "red",
         "LOGGER_HIGHLIGHT": "blue",
-        "FOOTER": "white"
+        "FOOTER": "white",
+        "SELECTED_ENTRY": "red"
     }
 }
