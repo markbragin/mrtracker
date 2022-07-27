@@ -12,3 +12,4 @@ class Action(Enum):
     DELETE = auto()
     RESET = auto()
     RESET_REC = auto()
+    MOVE = auto()
