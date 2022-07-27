@@ -132,11 +132,6 @@ def change_parent(task_id: int, new_parent_id: int) -> None:
     conn.commit()
 
 
-def get_max_task_id() -> int:
-    cur.execute("SELECT MAX(id) from tasks")
-    return cur.fetchone()[0]
-
-
 conn = sqlite3.connect(os.path.join(USER_DATA_DIR, DB_NAME))
 cur = conn.cursor()
 
