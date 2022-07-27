@@ -154,6 +154,7 @@ class TaskList(NestedList):
         elif entry.content == "delete":
             db.delete_tasks(self._collect_task_ids())
             await self.remove_node()
+            await self.go_down()
             self.sum_time_recursively()
             self.upd_total = not self.upd_total
             self._next_task_id = db.get_max_task_id() + 1
