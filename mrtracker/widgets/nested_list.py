@@ -46,6 +46,7 @@ class NestedList(TreeControl):
         node.parent.tree.children.remove(node.tree)
         node.parent.children.remove(node)
         del self.nodes[node.id]
+        self.id = max(self.nodes.keys())
 
     def _cur_to_latest_child(self) -> None:
         self.cursor = self.id
