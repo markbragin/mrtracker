@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS tasks(
     id INTEGER NOT NULL primary key,
-    name TEXT NOT NULL
+    name TEXT NOT NULL,
+    type CHAR(1) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS links(
@@ -27,6 +28,6 @@ CREATE TABLE IF NOT EXISTS sessions(
         ON DELETE CASCADE
 );
 
-INSERT INTO tasks VALUES (0, 'root');
-INSERT INTO tasks VALUES (1, 'header');
+INSERT INTO tasks VALUES (0, 'root', '#');
+INSERT INTO tasks VALUES (1, 'header', '#');
 INSERT INTO links VALUES (1, 0);

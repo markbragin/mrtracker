@@ -71,7 +71,8 @@ def fetch_full_info() -> List[Tuple]:
     _create_today_table()
     _create_month_table()
     cur.execute(
-        "SELECT t.id, l.parent_id, t.name, tt1.today, tt2.month, tt0.total "
+        "SELECT t.id, l.parent_id, t.name, t.type, "
+        "tt1.today, tt2.month, tt0.total "
         "FROM tasks t "
         "LEFT OUTER JOIN tt0 "
         "ON t.id = tt0.task_id "
@@ -96,8 +97,8 @@ def add_session(task_id: int, date: str, time: int) -> None:
     conn.commit()
 
 
-def add_task(task: str, parent_id: int = 0) -> None:
-    cur.execute("INSERT INTO tasks (name) VALUES (?)", (task,))
+def add_task(task: str, parent_id: int, etype: str) -> None:
+    cur.execute("INSERT INTO tasks (name, type) VALUES (?, ?)", (task, etype))
     cur.execute("SELECT id from tasks WHERE id = (SELECT MAX(id) from tasks)")
     task_id = cur.fetchone()[0]
     cur.execute("INSERT INTO links VALUES (?, ?)", (task_id, parent_id))
