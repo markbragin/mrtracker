@@ -11,7 +11,7 @@ from .entry import Entry, generate_empty_entry
 class Total(Widget, can_focus=False):
     def __init__(
         self,
-        data: Entry = generate_empty_entry(-1, -1),
+        data: Entry = generate_empty_entry(-1, -1, 'f'),
         name: str | None = "Total",
     ) -> None:
         super().__init__(name=name)
