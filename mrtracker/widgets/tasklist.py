@@ -9,6 +9,7 @@ from textual.widgets import NodeID, TreeNode
 from .. import db
 from ..config import config
 from ..mode import Action, Mode
+from ..stopwatch import sec_to_str
 from ..timetuple import TimeTuple
 from .entry import Entry, EntryType, generate_empty_entry
 from .in_app_logger import ialogger
@@ -39,7 +40,7 @@ class TaskList(NestedList):
 
     def __init__(
         self,
-        label: TextType = "TaskList",
+        label: TextType = "root",
         data: Entry = generate_empty_entry(0, -1, "f"),
         name: str | None = None,
         padding: PaddingDimensions = 0,
@@ -370,23 +371,39 @@ class TaskList(NestedList):
 
     def render_node(self, node: TreeNode) -> RenderableType:
         if node is self.root:
-            return self._render_root()
+            rendr = self._render_root()
         elif node is self.root.children[0]:
-            return self._render_header()
+            rendr = self._render_header()
         else:
-            return self._render_entry(node)
-
-    def _render_entry(self, node: TreeNode) -> RenderableType:
+            rendr =  self._render_entry(node)
         if node.id == self.cursor:
-            rendr = node.data.render(mode=self._mode, expanded=node.expanded)
-            style = config.styles["HIGHLIGHTED_TASK"]
-        else:
-            rendr = node.data.render(expanded=node.expanded)
-            style = config.styles["NORMAL_TASK"]
-        rendr.row_styles = [style]
+            rendr.row_styles = [config.styles["HIGHLIGHTED_TASK"]]
         return rendr
 
-    def _render_header(self) -> RenderableType:
+    def _render_entry(self, node: TreeNode) -> Table:
+
+        grid = Table.grid(expand=True)
+        grid.add_row(
+            self._render_name(node),
+            self._render_time(node.data.time),
+        )
+        return grid
+
+    def _render_name(self, node: TreeNode) -> RenderableType:
+        cursor = self.cursor == node.id and self._mode is Mode.INSERT
+        name = node.data._render_with_cursor() if cursor else node.data.name
+        if node.data.etype is EntryType.FOLDER:
+            name = f"🗁  {name}" if node.expanded else f"🗀 {name}"
+        return name
+
+    def _render_time(self, time: TimeTuple) -> RenderableType:
+        time_str = map(sec_to_str, time)
+        return Text.assemble(
+            *map(lambda x: x.ljust(12, " "), time_str),
+            justify="right",
+        )
+
+    def _render_header(self) -> Table:
         text_data = (
             "Today".rjust(12, " ")
             + "Month".rjust(12, " ")
@@ -397,8 +414,11 @@ class TaskList(NestedList):
         time = Text(text_data, justify="right")
 
         header = Table.grid(expand=True)
-        header.add_row(name, time, style=config.styles["TASKLIST_HEADER"])
+        header.add_row(name, time)
+        header.row_styles = [config.styles["TASKLIST_HEADER"]]
         return header
 
-    def _render_root(self) -> RenderableType:
-        return self.root.label
+    def _render_root(self) -> Table:
+        grid = Table.grid()
+        grid.add_row(self.root.label)
+        return grid
