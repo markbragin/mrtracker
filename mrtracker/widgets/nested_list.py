@@ -58,15 +58,15 @@ class NestedList(TreeControl):
             while self.cursor != parent.id:
                 await self.cursor_up()
 
+    async def _cur_up_to_root_child(self) -> None:
+        while self.nodes[self.cursor].parent is not self.root:
+            await self._cur_to_parent()
+
     async def _cur_to_next_sibling(self) -> None:
         sibling = self.nodes[self.cursor].next_sibling
         if sibling:
             while self.cursor != sibling.id:
                 await self.cursor_down()
-
-    async def _cur_back_to(self, node: TreeNode) -> None:
-        while self.cursor != node.id:
-            await self.cursor_up()
 
     async def _cur_to_root(self) -> None:
         self.cursor = NodeID(0)
