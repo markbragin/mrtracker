@@ -124,6 +124,14 @@ def rename_task(id: int, new_name: str) -> None:
     conn.commit()
 
 
+def change_parent(task_id: int, new_parent_id: int) -> None:
+    cur.execute(
+        "UPDATE links SET parent_id = (?) WHERE task_id=(?)",
+        (new_parent_id, task_id),
+    )
+    conn.commit()
+
+
 def get_max_task_id() -> int:
     cur.execute("SELECT MAX(id) from tasks")
     return cur.fetchone()[0]
