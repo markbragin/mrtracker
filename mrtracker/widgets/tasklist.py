@@ -37,6 +37,7 @@ class TaskList(NestedList):
     _selected: Reactive[NodeID | None] = Reactive(None)
     _mode: Reactive[Mode] = Reactive(Mode.NORMAL)
     _action: Action | None = None
+    _mem: NodeID = NodeID(0)
 
     def __init__(
         self,
@@ -128,6 +129,7 @@ class TaskList(NestedList):
         if entry.content == entry.name == "" or cancel:
             ialogger.update("Canceled")
             await self.remove_node()
+            self.cursor = self._mem
         else:
             entry.name = entry.content
             db.add_task(entry.name, entry.parent_id, entry.etype.value)
@@ -299,6 +301,7 @@ class TaskList(NestedList):
                 self.current_task = entry
 
     async def add_new_entry(self, etype: EntryType) -> None:
+        self._mem = self.cursor
         await self.add_root_child(
             f"{etype.name}",
             generate_empty_entry(self.id + 1, 0, etype.value),
@@ -315,6 +318,7 @@ class TaskList(NestedList):
         entry = node.data
         if etype is EntryType.FOLDER is not node.data.etype:
             return
+        self._mem = self.cursor
         await self.add_child(
             f"{etype.name}",
             generate_empty_entry(self.id + 1, entry.task_id, etype.value),
@@ -330,6 +334,7 @@ class TaskList(NestedList):
         entry = node.data
         if etype is EntryType.FOLDER is not node.parent.data.etype:
             return
+        self._mem = self.cursor
         await self.add_sibling(
             f"{etype.name}",
             generate_empty_entry(self.id + 1, entry.parent_id, etype.value),
