@@ -56,6 +56,7 @@ class TaskList(NestedList):
         await self._build_tree()
         await self.root.expand()
         self.sum_time_recursively()
+        self.id = max(self.nodes.keys())
 
     async def _build_tree(self, node_id: NodeID = NodeID(0)) -> None:
         for row in self._data:
@@ -366,6 +367,7 @@ class TaskList(NestedList):
         self._selected = self.nodes[self.cursor].id
         self._tree.hide_root = False
         self.refresh(layout=True)
+        ialogger.update("Select new parent")
 
     def reset_entry_time(self, recursively: bool = False) -> None:
         if not self._valid_cursor():
