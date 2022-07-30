@@ -8,9 +8,9 @@ class TextInput(Widget):
 
     _content: Reactive[str] = Reactive("")
     _cursor_pos: Reactive[int] = Reactive(0)
-    _width: Reactive[int] = Reactive(0)
     _has_focus: Reactive[bool] = Reactive(False)
-    placeholder: Reactive[str] = Reactive("")
+    _width: int = 0
+    placeholder: str = ""
 
     def __init__(self, name: str | None = "TextInput") -> None:
         super().__init__(name=name)
