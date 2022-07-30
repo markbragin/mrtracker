@@ -4,13 +4,14 @@ from textual.reactive import watch
 from textual.views._grid_view import GridView
 
 from .. import db
+from ..config import config
+from ..stopwatch import sec_to_str
 from ..widgets.current_task import CurrentTask
 from ..widgets.header import MyHeader
 from ..widgets.in_app_logger import ialogger
 from ..widgets.simple_scrollview import SimpleScrollView
 from ..widgets.tasklist import TaskList
 from ..widgets.timer import Timer
-from ..widgets.total import Total
 
 
 class MainView(GridView):
@@ -21,12 +22,7 @@ class MainView(GridView):
     async def on_mount(self) -> None:
         self._make_grid()
         self._place_widgets()
-        watch(self.timer, "_working", self.set_blocked)
         watch(self.tasklist, "current_task", self.start_task)
-        watch(self.tasklist, "upd_total", self.update_total)
-
-    async def update_total(self, _) -> None:
-        self.total.refresh()
 
     def _init_widgets(self) -> None:
         self.header = MyHeader()
@@ -35,7 +31,6 @@ class MainView(GridView):
         self.ialogger = ialogger
         self.tasklist = TaskList()
         self.t_scroll = SimpleScrollView(self.tasklist)
-        self.total = Total(self.tasklist.root.data)
 
     def _make_grid(self) -> None:
         self.grid.add_column("left", fraction=1)
@@ -44,7 +39,6 @@ class MainView(GridView):
         self.grid.add_row("r1", fraction=1, size=3)
         self.grid.add_row("r2", fraction=1, size=3)
         self.grid.add_row("r3", fraction=1)
-        self.grid.add_row("r4", fraction=1, size=1)
 
     def _place_widgets(self) -> None:
         self.grid.add_areas(
@@ -53,7 +47,6 @@ class MainView(GridView):
             focus="left,r2",
             logger="left,r3",
             timelist="right,header-end|r3-end",
-            total="left-start|right-end, r4",
         )
         self.grid.place(
             header=self.header,
@@ -61,11 +54,7 @@ class MainView(GridView):
             focus=self.timer,
             logger=self.ialogger,
             timelist=self.t_scroll,
-            total=self.total,
         )
-
-    async def set_blocked(self, working) -> None:
-        self.tasklist.blocked = working
 
     async def start_task(self, current_task) -> None:
         if not current_task:
@@ -75,10 +64,7 @@ class MainView(GridView):
             self.switch_timer()
 
     def set_current_task(self, current_task) -> None:
-        if current_task:
-            self.current_task._content = current_task.name
-        else:
-            self.current_task.clear_content()
+        self.current_task._content = current_task.title
 
     def switch_timer(self) -> None:
         if not self.tasklist.current_task:
@@ -93,16 +79,20 @@ class MainView(GridView):
     def save_session(self) -> None:
         if self.save_data() and self.tasklist.current_task:
             self.tasklist.add_time(self.timer.time)
-            self.total.refresh()
-        self.timer.restart_timer()
+        hl = config.styles["LOGGER_HIGHLIGHT"]
+        ialogger.update(
+            "[b]Session saved[/]\n"
+            f"[{hl}]{self.current_task.content}[/] - "
+            f"{sec_to_str(self.timer.time)}"
+        )
         self.tasklist.current_task = None
-        ialogger.update("Session saved. Timer reset.")
+        self.timer.restart_timer()
 
     def save_data(self) -> bool:
         if not (self.timer.time and self.tasklist.current_task):
             return False
         db.add_session(
-            self.tasklist.current_task.task_id,
+            self.tasklist.current_task.id,
             datetime.now().strftime("%Y-%m-%d"),
             self.timer.time,
         )
