@@ -1,21 +1,17 @@
-CREATE TABLE IF NOT EXISTS tasks(
-    id INTEGER NOT NULL primary key,
-    name TEXT NOT NULL,
-    type CHAR(1) NOT NULL
+CREATE TABLE IF NOT EXISTS projects(
+	id INTEGER NOT NULL PRIMARY KEY,
+	name INTEGER NOT NULL UNIQUE
 );
 
-CREATE TABLE IF NOT EXISTS links(
-    task_id INTEGER NOT NULL primary key,
-    parent_id INTEGER NOT NULL,
-    FOREIGN KEY(task_id)
-        REFERENCES tasks(id)
+CREATE TABLE IF NOT EXISTS tasks(
+    id INTEGER NOT NULL PRIMARY KEY,
+    project_id INTEGER NOT NULL,
+    name TEXT NOT NULL,
+    tags TEXT,
+    FOREIGN KEY(project_id)
+        REFERENCES projects(id)
         ON DELETE CASCADE
-        ON UPDATE CASCADE,
-    FOREIGN KEY(parent_id)
-        REFERENCES tasks(id)
-        ON DELETE CASCADE
-        ON UPDATE CASCADE,
-    CHECK(task_id != parent_id)
+        ON UPDATE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS sessions(
@@ -26,8 +22,5 @@ CREATE TABLE IF NOT EXISTS sessions(
     FOREIGN KEY(task_id)
         REFERENCES tasks(id)
         ON DELETE CASCADE
+        ON UPDATE CASCADE
 );
-
-INSERT INTO tasks VALUES (0, 'root', '#');
-INSERT INTO tasks VALUES (1, 'header', '#');
-INSERT INTO links VALUES (1, 0);
