@@ -31,7 +31,7 @@ class MainView(GridView):
 
     def _make_grid(self) -> None:
         self.grid.add_column("left", fraction=1)
-        self.grid.add_column("right", fraction=3)
+        self.grid.add_column("right", min_size=50, fraction=3)
         self.grid.add_row("header", fraction=1, size=1)
         self.grid.add_row("r1", fraction=1, size=3)
         self.grid.add_row("r2", fraction=1, size=3)
