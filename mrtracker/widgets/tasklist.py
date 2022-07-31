@@ -8,12 +8,12 @@ from textual.widgets import NodeID, TreeNode
 
 from .. import db
 from ..config import config
+from ..events import Upd
 from ..mode import Action, Mode
 from ..stopwatch import sec_to_str
 from .entry import Entry, generate_entry
 from .in_app_logger import ialogger
 from .nested_list import NestedList
-from ..events import Upd
 
 
 cyrillic_layout = dict(

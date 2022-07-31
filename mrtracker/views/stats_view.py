@@ -1,11 +1,12 @@
 from typing import Literal
-from rich.table import Table
+
 from rich.panel import Panel
+from rich.table import Table
 from textual.views._grid_view import GridView
 
 from .. import db
-from ..widgets.simple_scrollview import SimpleScrollView
 from ..stopwatch import sec_to_str
+from ..widgets.simple_scrollview import SimpleScrollView
 
 
 class StatsView(GridView):

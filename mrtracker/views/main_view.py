@@ -3,9 +3,9 @@ from datetime import datetime
 from textual.reactive import watch
 from textual.views._grid_view import GridView
 
-from ..events import Upd
 from .. import db
 from ..config import config
+from ..events import Upd
 from ..stopwatch import sec_to_str
 from ..widgets.current_task import CurrentTask
 from ..widgets.header import MyHeader

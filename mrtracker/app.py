@@ -4,7 +4,6 @@ from textual.reactive import Reactive, events, watch
 from textual.view import View
 from textual.views._grid_view import GridView
 
-from .events import Upd
 from .config import config
 from .views.help_view import HelpView
 from .views.main_view import MainView

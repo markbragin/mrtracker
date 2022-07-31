@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 import os
 import sqlite3
 
-from .config import DB_NAME, ROOT_PKG_DIR, DATA_DIR
+from .config import DATA_DIR, DB_NAME, ROOT_PKG_DIR
 
 
 def _init_db() -> None:
