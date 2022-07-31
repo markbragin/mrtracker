@@ -27,7 +27,11 @@
         "toggle_all_projects": "z"
     },
 	"stats_keys": {
-		"toggle_projects_after_task": "o"
+		"toggle_projects_after_task": "o",
+		"left": "h",
+		"right": "l",
+		"up": "k",
+		"down": "j"
 	},
     "styles": {
         "HEADER": "bold",
@@ -50,6 +54,7 @@
         "STATS_MONTH_BORDER_STYLE": "red",
         "STATS_SUBHEADERS_STYLE": "yellow bold",
         "STATS_PROJECTS_STYLE": "cyan",
+        "STATS_NORMAL_TEXT": "white",
         "DEFAULT_FORMAT": 1
     }
 }
