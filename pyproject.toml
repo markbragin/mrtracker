@@ -12,7 +12,6 @@ authors = [
 python = "^3.10"
 textual = "^0.1.18"
 platformdirs = "^2.5.2"
-jsonmerge = "^1.8.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
