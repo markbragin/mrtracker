@@ -121,27 +121,43 @@ class TaskList(NestedList):
     async def _handle_moving_entry(self, cancel: bool) -> None:
         selected_node = self.nodes[self._selected]
         new_parent = self.nodes[self.cursor]
+        hl = config.styles["LOGGER_HIGHLIGHT"]
         if cancel:
             ialogger.update("Canceled")
+            self._selected = None
+            return
         elif self.cursor == selected_node.parent.id:
             ialogger.update("Select ANOTHER project", error=True)
             return
         elif self.nodes[self.cursor].data.type == "project":
+            ialogger.update(
+                f"[{hl}]{selected_node.data.title}[/]: "
+                + f"[{hl}]{selected_node.parent.data.title}[/] -> "
+                + f"[{hl}]{new_parent.data.title}[/]"
+            )
             self._move_to_new_parent(selected_node, new_parent)
             db.change_project(selected_node.data.id, new_parent.data.id)
             self.sum_projects_time()
         else:
-            hl = config.styles["LOGGER_HIGHLIGHT"]
             ialogger.update(
                 f"Can't move [{hl}]{selected_node.label}[/] to "
                 f"[{hl}]{new_parent.label}[/]",
                 error=True,
             )
             return
-        ialogger.update("DONE")
         self._action = None
         self._selected = None
         self.refresh(layout=True)
+
+    def _move_to_new_parent(self, node: TreeNode, new_par: TreeNode) -> None:
+        new_par.tree.children.append(node.tree)
+        node.parent.tree.children.remove(node.tree)
+
+        new_par.children.append(node)
+        node.parent.children.remove(node)
+
+        node.parent = new_par
+        node.data.parent_id = new_par.data.id
 
     def _handle_starting_task(self) -> None:
         if self.current_task:
@@ -362,16 +378,6 @@ class TaskList(NestedList):
             )
         else:
             ialogger.update("Canceled")
-
-    def _move_to_new_parent(self, node: TreeNode, new_par: TreeNode) -> None:
-        new_par.tree.children.append(node.tree)
-        node.parent.tree.children.remove(node.tree)
-
-        new_par.children.append(node)
-        node.parent.children.remove(node)
-
-        node.parent = new_par
-        node.data.parent_id = new_par.data.id
 
     def add_time(self, time: int) -> None:
         self.current_task.time += time
