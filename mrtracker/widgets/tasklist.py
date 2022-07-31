@@ -13,6 +13,7 @@ from ..stopwatch import sec_to_str
 from .entry import Entry, generate_entry
 from .in_app_logger import ialogger
 from .nested_list import NestedList
+from ..events import Upd
 
 
 cyrillic_layout = dict(
@@ -275,7 +276,7 @@ class TaskList(NestedList):
             elif self._action is Action.DELETE:
                 await self._handle_deleting_entry(cancel)
             elif self._action is Action.RESET:
-                self._handle_resetting_task_time(cancel)
+                await self._handle_resetting_task_time(cancel)
             self._action = None
             self._mode = Mode.NORMAL
         event.stop()
@@ -328,6 +329,7 @@ class TaskList(NestedList):
             await self.remove_node()
             await self.go_down()
             self.sum_projects_time()
+            await self.app.post_message_from_child(Upd(self))
             hl = config.styles["LOGGER_HIGHLIGHT"]
             ialogger.update(
                 f"{type(entry).__name__} "
@@ -336,7 +338,7 @@ class TaskList(NestedList):
         else:
             ialogger.update("Canceled")
 
-    def _handle_resetting_task_time(self, cancel: bool = False) -> None:
+    async def _handle_resetting_task_time(self, cancel: bool = False) -> None:
         node = self.nodes[self.cursor]
         entry = node.data
         if cancel:
@@ -353,6 +355,7 @@ class TaskList(NestedList):
                 db.delete_sessions_by_task_ids([entry.id])
                 entry.time = 0
             self.sum_projects_time()
+            await self.app.post_message_from_child(Upd(self))
             ialogger.update(
                 f"[{config.styles['LOGGER_HIGHLIGHT']}]{entry.title}[/] "
                 "time has been reset"

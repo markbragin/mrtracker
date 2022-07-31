@@ -3,6 +3,7 @@ from datetime import datetime
 from textual.reactive import watch
 from textual.views._grid_view import GridView
 
+from ..events import Upd
 from .. import db
 from ..config import config
 from ..stopwatch import sec_to_str
@@ -18,11 +19,7 @@ class MainView(GridView):
     def __init__(self, name: str | None = "MainView") -> None:
         super().__init__(name=name)
         self._init_widgets()
-
-    async def on_mount(self) -> None:
         self._make_grid()
-        self._place_widgets()
-        watch(self.tasklist, "current_task", self.start_task)
 
     def _init_widgets(self) -> None:
         self.header = MyHeader()
@@ -39,6 +36,13 @@ class MainView(GridView):
         self.grid.add_row("r1", fraction=1, size=3)
         self.grid.add_row("r2", fraction=1, size=3)
         self.grid.add_row("r3", fraction=1)
+
+    async def on_focus(self) -> None:
+        await self.tasklist.focus()
+
+    def on_mount(self) -> None:
+        self._place_widgets()
+        watch(self.tasklist, "current_task", self.start_task)
 
     def _place_widgets(self) -> None:
         self.grid.add_areas(
@@ -76,7 +80,7 @@ class MainView(GridView):
             ialogger.update("Running")
         self.timer.switch_timer()
 
-    def save_session(self) -> None:
+    async def save_session(self) -> None:
         if self.save_data() and self.tasklist.current_task:
             self.tasklist.add_time(self.timer.time)
         hl = config.styles["LOGGER_HIGHLIGHT"]
@@ -87,6 +91,7 @@ class MainView(GridView):
         )
         self.tasklist.current_task = None
         self.timer.restart_timer()
+        await self.app.post_message_from_child(Upd(self))
 
     def save_data(self) -> bool:
         if not (self.timer.time and self.tasklist.current_task):
