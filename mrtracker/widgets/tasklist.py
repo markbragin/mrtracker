@@ -136,8 +136,10 @@ class TaskList(NestedList):
             and selected_entry.project_id == curr_entry.project_id
         ):
             self._swap_entries()
+            ialogger.update("[b]DONE[/]")
         elif selected_entry.type == "task" and curr_entry.type == "project":
             self._change_project()
+            ialogger.update("[b]DONE[/]")
         else:
             hl = config.styles["LOGGER_HIGHLIGHT"]
             ialogger.update(
@@ -375,6 +377,7 @@ class TaskList(NestedList):
                 db.rename_project(entry.id, entry.title)
             else:
                 db.rename_task(entry.id, entry.title)
+            ialogger.update("[b]DONE[/]")
 
     async def _handle_deleting_entry(self, cancel: bool = False) -> None:
         node = self.nodes[self.cursor]
@@ -390,6 +393,7 @@ class TaskList(NestedList):
             await self.go_down()
             self.sum_projects_time()
             await self.app.post_message_from_child(Upd(self))
+            ialogger.update("[b]DONE[/]")
         else:
             ialogger.update("Canceled")
 
@@ -411,6 +415,7 @@ class TaskList(NestedList):
                 entry.time = 0
             self.sum_projects_time()
             await self.app.post_message_from_child(Upd(self))
+            ialogger.update("[b]DONE[/]")
         else:
             ialogger.update("Canceled")
 
@@ -432,6 +437,7 @@ class TaskList(NestedList):
             db.update_tags(task_ids, new_tag)
             self.sum_projects_time()
             await self.app.post_message_from_child(Upd(self))
+            ialogger.update("[b]DONE[/]")
 
     def add_time(self, time: int) -> None:
         self.current_task.time += time
