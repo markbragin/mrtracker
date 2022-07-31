@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 import os
 import sqlite3
 
@@ -34,17 +35,49 @@ def fetch_projects() -> list[tuple]:
     return cur.fetchall()
 
 
-def fetch_total() -> None:
+def fetch_today() -> list[tuple]:
     cur.execute(
-        "SELECT t.id, p.id, t.name, SUM(s.time) "
-        "FROM projects p "
-        "LEFT OUTER JOIN tasks t "
-        "ON p.id = t.project_id "
-        "LEFT OUTER JOIN sessions s "
+        "SELECT t.name, SUM(s.time) sum "
+        "FROM sessions s "
+        "LEFT JOIN tasks t "
         "ON t.id = s.task_id "
-        "GROUP BY t.id"
+        "WHERE date = date('now', 'localtime') "
+        "GROUP BY s.task_id "
+        "ORDER BY sum DESC"
     )
-    conn.commit()
+    return cur.fetchall()
+
+
+def fetch_week() -> list[tuple]:
+    now = datetime.now()
+    week_ago = now - timedelta(days=7)
+    cur.execute(
+        "SELECT t.name, SUM(s.time) sum "
+        "FROM sessions s "
+        "LEFT JOIN tasks t "
+        "ON t.id = s.task_id "
+        "WHERE date BETWEEN (?) AND (?) "
+        "GROUP BY s.task_id "
+        "ORDER BY sum DESC",
+        (week_ago.strftime("%Y-%m-%d"), now.strftime("%Y-%m-%d")),
+    )
+    return cur.fetchall()
+
+
+def fetch_month() -> list[tuple]:
+    now = datetime.now()
+    month_ago = now - timedelta(days=30)
+    cur.execute(
+        "SELECT t.name, SUM(s.time) sum "
+        "FROM sessions s "
+        "LEFT JOIN tasks t "
+        "ON t.id = s.task_id "
+        "WHERE date BETWEEN (?) AND (?) "
+        "GROUP BY s.task_id "
+        "ORDER BY sum DESC",
+        (month_ago.strftime("%Y-%m-%d"), now.strftime("%Y-%m-%d")),
+    )
+    return cur.fetchall()
 
 
 def add_session(task_id: int, date: str, time: int) -> None:
