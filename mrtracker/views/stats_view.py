@@ -2,6 +2,8 @@ from typing import Literal
 
 from rich.panel import Panel
 from rich.table import Table
+from textual.reactive import Reactive
+from textual import events
 from textual.views._grid_view import GridView
 
 from .. import db
@@ -10,6 +12,8 @@ from ..widgets.simple_scrollview import SimpleScrollView
 
 
 class StatsView(GridView):
+    _show_project: Reactive[bool] = Reactive(False)
+
     def __init__(self, name: str | None = "StatsView") -> None:
         super().__init__(name=name)
         self._init_widgets()
@@ -25,6 +29,11 @@ class StatsView(GridView):
         self.grid.add_column("center", fraction=1)
         self.grid.add_column("right", fraction=1)
         self.grid.add_row("row")
+
+    async def on_key(self, event: events.Key) -> None:
+        if event.key == "o":
+            self._show_project = not self._show_project
+            await self.update()
 
     async def on_mount(self) -> None:
         self._place_widgets()
@@ -78,7 +87,12 @@ class StatsView(GridView):
 
         grid.add_row("[magenta]Tasks:")
         for row in tasks:
-            grid.add_row(row[0], sec_to_str(row[1]))
+            task = (
+                f"{row[0]} -> [blue]{row[2]}[/]"
+                if self._show_project
+                else row[0]
+            )
+            grid.add_row(task, sec_to_str(row[1]))
         grid.add_row(end_section=True)
 
         grid.add_row("[magenta]Tags:")

@@ -40,10 +40,12 @@ def fetch_projects() -> list[tuple]:
 
 def fetch_tasks_today() -> list[tuple]:
     cur.execute(
-        "SELECT t.name, SUM(s.time) sum "
+        "SELECT t.name, SUM(s.time) sum, p.name "
         "FROM sessions s "
         "LEFT JOIN tasks t "
         "ON t.id = s.task_id "
+        "LEFT JOIN projects p "
+        "ON t.project_id = p.id "
         "WHERE date = date('now', 'localtime') "
         "GROUP BY s.task_id "
         "ORDER BY sum DESC"
@@ -55,10 +57,12 @@ def fetch_tasks_week() -> list[tuple]:
     now = datetime.now()
     week_ago = now - timedelta(days=7)
     cur.execute(
-        "SELECT t.name, SUM(s.time) sum "
+        "SELECT t.name, SUM(s.time) sum, p.name "
         "FROM sessions s "
         "LEFT JOIN tasks t "
         "ON t.id = s.task_id "
+        "LEFT JOIN projects p "
+        "ON t.project_id = p.id "
         "WHERE date BETWEEN (?) AND (?) "
         "GROUP BY s.task_id "
         "ORDER BY sum DESC",
@@ -71,10 +75,12 @@ def fetch_tasks_month() -> list[tuple]:
     now = datetime.now()
     month_ago = now - timedelta(days=30)
     cur.execute(
-        "SELECT t.name, SUM(s.time) sum "
+        "SELECT t.name, SUM(s.time) sum, p.name "
         "FROM sessions s "
         "LEFT JOIN tasks t "
         "ON t.id = s.task_id "
+        "LEFT JOIN projects p "
+        "ON t.project_id = p.id "
         "WHERE date BETWEEN (?) AND (?) "
         "GROUP BY s.task_id "
         "ORDER BY sum DESC",
