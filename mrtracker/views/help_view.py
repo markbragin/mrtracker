@@ -10,8 +10,8 @@ from ..widgets.simple_scrollview import SimpleScrollView
 class HelpView(DockView):
     def __init__(self, name: str | None = "HelpView") -> None:
         super().__init__(name=name)
-        table = self.create_table()
-        self.scrll = SimpleScrollView(Align(table, "center"))
+        self.create_table()
+        self.scrll = SimpleScrollView(Align(self.table, "center"))
 
     async def on_focus(self) -> None:
         await self.scrll.focus()
@@ -19,36 +19,50 @@ class HelpView(DockView):
     async def on_mount(self) -> None:
         await self.dock(self.scrll)
 
-    def create_table(self) -> Table:
-        # ---------------------------------------
-        table = Table(show_header=False, box=None)
-        table.title_style = ""
-        table.title = (
+    def create_table(self):
+        self.table = Table(show_header=False, box=None)
+        self.table.title_style = ""
+        self._insert_title()
+        self._insert_app_keys()
+        self._insert_tasklist_keys()
+        self._insert_stats_keys()
+
+    def _insert_title(self) -> None:
+        self.table.title = (
             "[yellow bold]Help\n\n[/]"
             + "To change bindings and styles edit\n"
             + f"[dim]{CONFIG_PATH}[/]"
         )
 
-        # --------------------------------------
-        table.add_row("[magenta]App keys:")
+    def _insert_app_keys(self) -> None:
+        self.table.add_row("[magenta]App keys:")
         for descrip, key in config.app_keys.items():
-            table.add_row(
+            self.table.add_row(
                 Align(key, "right", style="blue"), " ".join(descrip.split("_"))
             )
-        table.add_row(end_section=True)
+        self.table.add_row(end_section=True)
 
-        # -------------------------------------
-        table.add_row("[magenta]Tasklist keys:")
+    def _insert_tasklist_keys(self) -> None:
+        self.table.add_row("[magenta]Tasklist keys:")
         for descrip, key in config.tasklist_keys.items():
-            table.add_row(
+            self.table.add_row(
                 Align(key, "right", style="blue"),
                 " ".join(descrip.split("_")),
             )
-        table.add_row(
+        self.table.add_row(
             Align("1, 2, 3", "right", style="blue"),
             "change format",
         )
-        return table
+        self.table.add_row(end_section=True)
+
+    def _insert_stats_keys(self) -> None:
+        self.table.add_row("[magenta]Tasklist keys:")
+        for descrip, key in config.stats_keys.items():
+            self.table.add_row(
+                Align(key, "right", style="blue"),
+                " ".join(descrip.split("_")),
+            )
+
 
     async def on_key(self, event: events.Key) -> None:
         if event.key in [config.tasklist_keys["go_down"], "down"]:
