@@ -1,32 +1,34 @@
 {
-    "//": "Styles: https://github.com/Textualize/rich",
-    "bindings": {
-        "app": {
-            "reset_focus": "escape",
-            "quit": "ctrl+q",
-            "switch_timer": "ctrl+p",
-            "save_session": "ctrl+s",
-            "discard_session": "ctrl+]",
-            "show_help": "ctrl+h"
-        },
-        "tasklist": {
-            "go_down": "j",
-            "go_up": "k",
-            "add_task": "a",
-            "new_project": "n",
-            "rename_entry": "r",
-            "delete_entry": "d",
-            "move_entry": "m",
-            "toggle_project": "o",
-            "toggle_all_projects": "z",
-            "reset_entry_time": "u"
-        }
+    "help": [
+        "Styles: https://github.com/Textualize/rich",
+        "DEFAULT FORMAT in [1, 2, 3]"
+    ],
+    "app_keys": {
+        "reset_focus": "escape",
+        "quit": "ctrl+q",
+        "switch_timer": "ctrl+p",
+        "save_session": "ctrl+s",
+        "discard_session": "ctrl+]",
+        "show_help": "ctrl+h"
+    },
+    "tasklist_keys": {
+        "go_down": "j",
+        "go_up": "k",
+        "add_task": "a",
+        "new_project": "n",
+        "rename_entry": "r",
+        "delete_entry": "d",
+        "move_entry": "m",
+        "toggle_project": "o",
+        "toggle_all_projects": "z",
+        "reset_entry_time": "u"
     },
     "styles": {
         "HEADER": "bold",
+        "PROJECT_STYLE": "cyan bold",
+        "TASK_STYLE": "white",
         "HIGHLIGHTED_ENTRY": "yellow",
         "SELECTED_ENTRY": "red",
-        "NORMAL_ENTRY": "white",
         "TASKLIST_HEADER": "magenta bold",
         "TASKLIST_BORDER": "white",
         "CURRENT_TASK_TEXT": "white",
@@ -36,6 +38,7 @@
         "TIMER_BORDER": "white",
         "LOGGER_BORDER": "white",
         "LOGGER_ERROR_BORDER": "red",
-        "LOGGER_HIGHLIGHT": "blue"
+        "LOGGER_HIGHLIGHT": "blue",
+        "DEFAULT_FORMAT": 1
     }
 }
