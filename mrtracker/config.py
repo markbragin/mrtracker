@@ -48,7 +48,7 @@ class Config:
             base = json.load(f)
 
         for section in base:
-            if section == "help":
+            if section == "help" or section not in user:
                 continue
             for key in base[section]:
                 if key in user[section]:
@@ -62,6 +62,7 @@ class Config:
             cfg = json.load(f)
             self.app_keys = cfg["app_keys"]
             self.tasklist_keys = cfg["tasklist_keys"]
+            self.stats_keys = cfg["stats_keys"]
             self.styles = cfg["styles"]
 
 
