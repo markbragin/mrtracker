@@ -9,6 +9,7 @@
         "switch_timer": "ctrl+p",
         "save_session": "ctrl+s",
         "discard_session": "ctrl+]",
+        "show_stats": "ctrl+p",
         "show_help": "ctrl+h"
     },
     "tasklist_keys": {
