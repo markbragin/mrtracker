@@ -53,14 +53,29 @@ class StatsView(GridView):
         grid.add_column("Time", justify="right", no_wrap=True)
         grid.row_styles = ["white"]
         if interval == "today":
-            for row in db.fetch_today():
+            grid.add_row("[magenta]Projects:")
+            for row in db.fetch_projects_today():
+                grid.add_row(row[0], sec_to_str(row[1]))
+            grid.add_row(end_section=True)
+            grid.add_row("[magenta]Tasks:")
+            for row in db.fetch_tasks_today():
                 grid.add_row(row[0], sec_to_str(row[1]))
             return Panel(grid, title="Today", style="blue")
         elif interval == "week":
-            for row in db.fetch_week():
+            grid.add_row("[magenta]Projects:")
+            for row in db.fetch_projects_week():
+                grid.add_row(row[0], sec_to_str(row[1]))
+            grid.add_row(end_section=True)
+            grid.add_row("[magenta]Tasks:")
+            for row in db.fetch_tasks_week():
                 grid.add_row(row[0], sec_to_str(row[1]))
             return Panel(grid, title="Last 7 days", style="green")
         else:
-            for row in db.fetch_month():
+            grid.add_row("[magenta]Projects:")
+            for row in db.fetch_projects_month():
+                grid.add_row(row[0], sec_to_str(row[1]))
+            grid.add_row(end_section=True)
+            grid.add_row("[magenta]Tasks:")
+            for row in db.fetch_tasks_month():
                 grid.add_row(row[0], sec_to_str(row[1]))
             return Panel(grid, title="Last 30 days", style="red")

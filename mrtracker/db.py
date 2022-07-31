@@ -36,7 +36,7 @@ def fetch_projects() -> list[tuple]:
     return cur.fetchall()
 
 
-def fetch_today() -> list[tuple]:
+def fetch_tasks_today() -> list[tuple]:
     cur.execute(
         "SELECT t.name, SUM(s.time) sum "
         "FROM sessions s "
@@ -49,7 +49,7 @@ def fetch_today() -> list[tuple]:
     return cur.fetchall()
 
 
-def fetch_week() -> list[tuple]:
+def fetch_tasks_week() -> list[tuple]:
     now = datetime.now()
     week_ago = now - timedelta(days=7)
     cur.execute(
@@ -65,7 +65,7 @@ def fetch_week() -> list[tuple]:
     return cur.fetchall()
 
 
-def fetch_month() -> list[tuple]:
+def fetch_tasks_month() -> list[tuple]:
     now = datetime.now()
     month_ago = now - timedelta(days=30)
     cur.execute(
@@ -75,6 +75,57 @@ def fetch_month() -> list[tuple]:
         "ON t.id = s.task_id "
         "WHERE date BETWEEN (?) AND (?) "
         "GROUP BY s.task_id "
+        "ORDER BY sum DESC",
+        (month_ago.strftime("%Y-%m-%d"), now.strftime("%Y-%m-%d")),
+    )
+    return cur.fetchall()
+
+
+def fetch_projects_today() -> list[tuple]:
+    cur.execute(
+        "SELECT p.name, SUM(s.time) sum "
+        "FROM sessions s "
+        "LEFT JOIN tasks t "
+        "ON t.id = s.task_id "
+        "LEFT JOIN projects p "
+        "ON t.project_id = p.id "
+        "WHERE date = date('now', 'localtime') "
+        "GROUP BY p.id "
+        "ORDER BY sum DESC"
+    )
+    return cur.fetchall()
+
+
+def fetch_projects_week() -> list[tuple]:
+    now = datetime.now()
+    week_ago = now - timedelta(days=7)
+    cur.execute(
+        "SELECT p.name, SUM(s.time) sum "
+        "FROM sessions s "
+        "LEFT JOIN tasks t "
+        "ON t.id = s.task_id "
+        "LEFT JOIN projects p "
+        "ON t.project_id = p.id "
+        "WHERE date BETWEEN (?) AND (?) "
+        "GROUP BY p.id "
+        "ORDER BY sum DESC",
+        (week_ago.strftime("%Y-%m-%d"), now.strftime("%Y-%m-%d")),
+    )
+    return cur.fetchall()
+
+
+def fetch_projects_month() -> list[tuple]:
+    now = datetime.now()
+    month_ago = now - timedelta(days=30)
+    cur.execute(
+        "SELECT p.name, SUM(s.time) sum "
+        "FROM sessions s "
+        "LEFT JOIN tasks t "
+        "ON t.id = s.task_id "
+        "LEFT JOIN projects p "
+        "ON t.project_id = p.id "
+        "WHERE date BETWEEN (?) AND (?) "
+        "GROUP BY p.id "
         "ORDER BY sum DESC",
         (month_ago.strftime("%Y-%m-%d"), now.strftime("%Y-%m-%d")),
     )
