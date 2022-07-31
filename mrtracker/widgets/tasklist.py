@@ -342,10 +342,6 @@ class TaskList(NestedList):
                 db.add_project(entry.title)
             else:
                 db.add_task(entry.title, entry.project_id)
-            hl = config.styles["LOGGER_HIGHLIGHT"]
-            ialogger.update(
-                f"{entry.type.capitalize()} [{hl}]{entry.title}[/] added."
-            )
 
     def _handle_renaming_entry(self, cancel: bool = False) -> None:
         entry = self.nodes[self.cursor].data
@@ -353,11 +349,6 @@ class TaskList(NestedList):
             ialogger.update("Canceled")
             return
         else:
-            ialogger.update(
-                f"{entry.type.capitalize()} renamed: "
-                f"[{config.styles['LOGGER_HIGHLIGHT']}]{entry.title}[/] -> "
-                f"[{config.styles['LOGGER_HIGHLIGHT']}]{entry.content}[/]."
-            )
             entry.title = entry.content
             if entry.type == "project":
                 db.rename_project(entry.id, entry.title)
@@ -378,11 +369,6 @@ class TaskList(NestedList):
             await self.go_down()
             self.sum_projects_time()
             await self.app.post_message_from_child(Upd(self))
-            hl = config.styles["LOGGER_HIGHLIGHT"]
-            ialogger.update(
-                f"{type(entry).__name__} "
-                + f"[{hl}]{entry.title}[/] has been removed."
-            )
         else:
             ialogger.update("Canceled")
 
@@ -404,10 +390,6 @@ class TaskList(NestedList):
                 entry.time = 0
             self.sum_projects_time()
             await self.app.post_message_from_child(Upd(self))
-            ialogger.update(
-                f"[{config.styles['LOGGER_HIGHLIGHT']}]{entry.title}[/] "
-                "time has been reset"
-            )
         else:
             ialogger.update("Canceled")
 
