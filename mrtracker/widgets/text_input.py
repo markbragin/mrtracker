@@ -1,4 +1,5 @@
 from rich.console import RenderableType
+from rich.text import Text
 from textual.app import events
 from textual.reactive import Reactive
 from textual.widget import Widget
@@ -107,14 +108,16 @@ class TextInput(Widget):
         else:
             return self._content
 
-    def _render_with_cursor(self) -> RenderableType:
+    def _render_with_cursor(self) -> Text:
         if self._cursor_pos == self._width:
-            visible = self._content[: self._cursor_pos] + "[reverse] [/]"
+            visible = Text.assemble(
+                self._content[: self._cursor_pos], Text(" ", style="reverse")
+            )
         else:
-            visible = (
-                self._content[: self._cursor_pos]
-                + f"[reverse]{self._content[self._cursor_pos]}[/]"
-                + self._content[self._cursor_pos + 1 :]
+            visible = Text.assemble(
+                self._content[: self._cursor_pos],
+                Text(f"{self._content[self._cursor_pos]}", style="reverse"),
+                self._content[self._cursor_pos + 1 :],
             )
 
         return visible
