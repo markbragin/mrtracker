@@ -12,3 +12,4 @@ class Action(Enum):
     DELETE = auto()
     RESET = auto()
     MOVE = auto()
+    ADD_TAG = auto()

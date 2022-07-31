@@ -9,6 +9,7 @@ class Entry(TextInput):
     _project_id: int | None
     _title: str
     _time: int
+    _tag: str | None
 
     def __init__(self, data: tuple) -> None:
         super().__init__()
@@ -16,6 +17,7 @@ class Entry(TextInput):
         self._project_id = data[1]
         self._title = data[2]
         self._time = data[3] if data[3] else 0
+        self._tag = data[4]
 
     def on_key(self, event: events.Key) -> None:
         super().on_key(event)
@@ -48,6 +50,14 @@ class Entry(TextInput):
     def type(self) -> str:
         return "task" if self._project_id else "project"
 
+    @property
+    def tag(self) -> str | None:
+        return self._tag
+
+    @tag.setter
+    def tag(self, new_tag: str) -> None:
+        self._tag = new_tag if new_tag else None
+
 
 def generate_entry(entry_id: int, project_id: int | None) -> Entry:
-    return Entry((entry_id, project_id, "", 0))
+    return Entry((entry_id, project_id, "", 0, None))

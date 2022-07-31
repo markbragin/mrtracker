@@ -55,23 +55,34 @@ class StatsView(GridView):
         if interval == "today":
             projects = db.fetch_projects_today()
             tasks = db.fetch_tasks_today()
+            tags = db.fetch_tags_today()
             title = "Today"
             style = "blue"
         elif interval == "week":
             projects = db.fetch_projects_week()
             tasks = db.fetch_tasks_week()
+            tags = db.fetch_tags_week()
             title = "Last 7 days"
             style = "green"
         elif interval == "month":
             projects = db.fetch_projects_month()
             tasks = db.fetch_tasks_month()
+            tags = db.fetch_tags_month()
             title = "Last 30 days"
             style = "red"
+
         grid.add_row("[magenta]Projects:")
         for row in projects:
             grid.add_row(row[0], sec_to_str(row[1]))
         grid.add_row(end_section=True)
+
         grid.add_row("[magenta]Tasks:")
         for row in tasks:
             grid.add_row(row[0], sec_to_str(row[1]))
+        grid.add_row(end_section=True)
+
+        grid.add_row("[magenta]Tags:")
+        for row in tags:
+            grid.add_row(row[0], sec_to_str(row[1]))
+
         return Panel(grid, title=title, style=style)

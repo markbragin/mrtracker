@@ -32,11 +32,11 @@ cyrillic_layout = dict(
 class TaskList(NestedList):
 
     current_task: Reactive[Entry | None] = Reactive(None)
-    blocked: Reactive[bool] = Reactive(False)
     _selected: Reactive[NodeID | None] = Reactive(None)
     _mode: Reactive[Mode] = Reactive(Mode.NORMAL)
     _action: Action | None = None
     _mem: NodeID = NodeID(0)
+    _show_tags: Reactive[bool] = Reactive(False)
     _list_style: Reactive[int] = Reactive(config.styles["DEFAULT_FORMAT"])
 
     def __init__(
@@ -111,6 +111,10 @@ class TaskList(NestedList):
             self.reset_entry_time()
         elif key == config.tasklist_keys["move_entry"]:
             self.move_entry()
+        elif key == config.tasklist_keys["change_tag"]:
+            self.change_tag()
+        elif key == config.tasklist_keys["show_tags"]:
+            self.toggle_tags()
         elif key == config.tasklist_keys["toggle_project"]:
             await self.toggle_project()
         elif key == config.tasklist_keys["toggle_all_projects"]:
@@ -301,6 +305,17 @@ class TaskList(NestedList):
         self._selected = self.nodes[self.cursor].id
         ialogger.update("Select target")
 
+    def change_tag(self) -> None:
+        if not self._valid_cursor():
+            return
+        self._action = Action.ADD_TAG
+        self._mode = Mode.INSERT
+        self.nodes[self.cursor].data.clear_content()
+        ialogger.update("Type new tag")
+
+    def toggle_tags(self) -> None:
+        self._show_tags = not self._show_tags
+
     def _valid_cursor(self) -> bool:
         return self.cursor not in [self.root.id, self.root.children[0].id]
 
@@ -312,6 +327,8 @@ class TaskList(NestedList):
     async def toggle_all_projects(self) -> None:
         for project in self.root.children:
             await project.expand(not self.root.children[-1].expanded)
+        if self.nodes[self.cursor].data.type == "task":
+            self._cur_to_parent()
 
     async def _handle_keypress_in_insert_mode(self, event: events.Key) -> None:
         self.nodes[self.cursor].data.on_key(event)
@@ -325,6 +342,9 @@ class TaskList(NestedList):
                 await self._handle_deleting_entry(cancel)
             elif self._action is Action.RESET:
                 await self._handle_resetting_task_time(cancel)
+            elif self._action is Action.ADD_TAG:
+                await self._handle_changing_tag(cancel)
+
             self._action = None
             self._mode = Mode.NORMAL
         event.stop()
@@ -393,6 +413,25 @@ class TaskList(NestedList):
         else:
             ialogger.update("Canceled")
 
+    async def _handle_changing_tag(self, cancel: bool = False) -> None:
+        node = self.nodes[self.cursor]
+        entry = node.data
+        if cancel:
+            ialogger.update("Canceled")
+        else:
+            new_tag = entry.content if entry.content else None
+            task_ids = []
+            if entry.type == "project":
+                for task_node in node.children:
+                    task_node.data.tag = new_tag
+                    task_ids.append(task_node.data.id)
+            else:
+                entry.tag = new_tag
+                task_ids.append(entry.id)
+            db.update_tags(task_ids, new_tag)
+            self.sum_projects_time()
+            await self.app.post_message_from_child(Upd(self))
+
     def add_time(self, time: int) -> None:
         self.current_task.time += time
         self.sum_projects_time()
@@ -452,6 +491,8 @@ class TaskList(NestedList):
                 name = f"→ {name}"
                 if node.children:
                     name = f"{name} [{len(node.children)}]"
+        elif self._show_tags:
+            name = f"{name} #{node.data.tag if node.data.tag else ''}"
         name = Text(name)
         if cursor:
             name = node.data._render_with_cursor()

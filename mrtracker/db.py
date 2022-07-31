@@ -19,7 +19,7 @@ def _check_db_exists() -> bool:
 
 def fetch_tasks() -> list[tuple]:
     cur.execute(
-        "SELECT t.id, p.id, t.name, SUM(s.time) "
+        "SELECT t.id, p.id, t.name, SUM(s.time), t.tags "
         "FROM tasks t "
         "LEFT JOIN projects p "
         "ON t.project_id = p.id "
@@ -32,7 +32,9 @@ def fetch_tasks() -> list[tuple]:
 
 
 def fetch_projects() -> list[tuple]:
-    cur.execute("SELECT id, NULL, name, NULL FROM projects p ORDER BY p.id")
+    cur.execute(
+        "SELECT id, NULL, name, NULL, NULL FROM projects p ORDER BY p.id"
+    )
     return cur.fetchall()
 
 
@@ -132,6 +134,51 @@ def fetch_projects_month() -> list[tuple]:
     return cur.fetchall()
 
 
+def fetch_tags_today() -> list[tuple]:
+    cur.execute(
+        "SELECT t.tags, SUM(s.time) sum "
+        "FROM sessions s "
+        "LEFT JOIN tasks t "
+        "ON t.id = s.task_id "
+        "WHERE t.tags IS NOT NULL AND date = date('now', 'localtime') "
+        "GROUP BY t.tags "
+        "ORDER BY sum DESC"
+    )
+    return cur.fetchall()
+
+
+def fetch_tags_week() -> list[tuple]:
+    now = datetime.now()
+    week_ago = now - timedelta(days=7)
+    cur.execute(
+        "SELECT t.tags, SUM(s.time) sum "
+        "FROM sessions s "
+        "LEFT JOIN tasks t "
+        "ON t.id = s.task_id "
+        "WHERE t.tags IS NOT NULL AND date BETWEEN (?) AND (?) "
+        "GROUP BY t.tags "
+        "ORDER BY sum DESC",
+        (week_ago.strftime("%Y-%m-%d"), now.strftime("%Y-%m-%d")),
+    )
+    return cur.fetchall()
+
+
+def fetch_tags_month() -> list[tuple]:
+    now = datetime.now()
+    month_ago = now - timedelta(days=30)
+    cur.execute(
+        "SELECT t.tags, SUM(s.time) sum "
+        "FROM sessions s "
+        "LEFT JOIN tasks t "
+        "ON t.id = s.task_id "
+        "WHERE t.tags IS NOT NULL AND date BETWEEN (?) AND (?) "
+        "GROUP BY t.tags "
+        "ORDER BY sum DESC",
+        (month_ago.strftime("%Y-%m-%d"), now.strftime("%Y-%m-%d")),
+    )
+    return cur.fetchall()
+
+
 def add_session(task_id: int, date: str, time: int) -> None:
     cur.execute(
         "INSERT INTO sessions (task_id, date, time) VALUES (?, ?, ?)",
@@ -175,6 +222,15 @@ def rename_task(task_id: int, new_name: str) -> None:
     cur.execute(
         "UPDATE tasks SET name = (?) WHERE id=(?)",
         (new_name, task_id),
+    )
+    conn.commit()
+
+
+def update_tags(task_ids: list[int], tag: str | None) -> None:
+    placeholders = ", ".join("?" for _ in task_ids)
+    cur.execute(
+        "UPDATE tasks SET tags=(?) WHERE id in (%s)" % placeholders,
+        (tag, *task_ids),
     )
     conn.commit()
 

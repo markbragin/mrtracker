@@ -20,9 +20,11 @@
         "rename_entry": "r",
         "delete_entry": "d",
         "move_entry": "m",
+        "change_tag": "t",
+        "show_tags": "y",
         "toggle_project": "o",
-        "toggle_all_projects": "z",
-        "reset_entry_time": "u"
+        "reset_entry_time": "u",
+        "toggle_all_projects": "z"
     },
     "styles": {
         "HEADER": "bold",
