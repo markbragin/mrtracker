@@ -72,19 +72,6 @@ class NestedList(TreeControl):
     async def toggle_folding(self) -> None:
         await self.nodes[self.cursor].toggle()
 
-    async def toggle_folding_recursively(
-        self, node: TreeNode | None = None, expanded: bool | None = None
-    ) -> None:
-        node = node if node else self.nodes[self.cursor]
-        expanded = expanded if expanded else not node.expanded
-        await self._fold_recursively(expanded, node)
-
-    async def _fold_recursively(self, expanded: bool, node: TreeNode) -> None:
-        await node.expand(expanded)
-        for nd in node.children:
-            await nd.expand(expanded)
-            await self._fold_recursively(expanded, nd)
-
     async def key_down(self, event: events.Key) -> None:
         pass
 

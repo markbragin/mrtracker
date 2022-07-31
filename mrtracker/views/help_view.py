@@ -13,6 +13,9 @@ class HelpView(DockView):
         table = self.create_table()
         self.scrll = SimpleScrollView(Align(table, "center"))
 
+    async def on_focus(self) -> None:
+        await self.scrll.focus()
+
     async def on_mount(self) -> None:
         await self.dock(self.scrll)
 
@@ -41,6 +44,10 @@ class HelpView(DockView):
                 Align(key, "right", style="blue"),
                 " ".join(descrip.split("_")),
             )
+        table.add_row(
+            Align("1, 2, 3", "right", style="blue"),
+            "change format",
+        )
         return table
 
     async def on_key(self, event: events.Key) -> None:
