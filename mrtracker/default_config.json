@@ -1,38 +1,44 @@
 {
-    "//": "Styles: https://github.com/Textualize/rich",
-    "bindings": {
-        "app": {
-            "reset_focus": "escape",
-            "quit": "ctrl+q",
-            "switch_timer": "ctrl+p",
-            "save_session": "ctrl+s",
-            "discard_session": "ctrl+]",
-            "show_help": "ctrl+h"
-        },
-        "tasklist": {
-            "go_down": "j",
-            "go_up": "k",
-            "go_to_parent": "p",
-            "add_new_task": "n",
-            "add_new_folder": "N",
-            "add_child_task": "a",
-            "add_child_folder": "A",
-            "add_sibling_task": "s",
-            "add_sibling_folder": "S",
-            "rename_entry": "r",
-            "delete_entry": "d",
-            "move_entry": "m",
-            "toggle_folding": "o",
-            "toggle_folding_recursively": "O",
-            "toggle_all_entries_recursively": "z",
-            "reset_entry_time": "u",
-            "reset_entry_time_recursively": "U"
-        }
+    "help": [
+        "Styles: https://github.com/Textualize/rich",
+        "DEFAULT FORMAT in [1, 2, 3]"
+    ],
+    "app_keys": {
+        "reset_focus": "escape",
+        "quit": "ctrl+q",
+        "switch_timer": "ctrl+p",
+        "save_session": "ctrl+s",
+        "discard_session": "ctrl+]",
+        "show_stats": "ctrl+p",
+        "show_help": "ctrl+h"
     },
+    "tasklist_keys": {
+        "go_down": "j",
+        "go_up": "k",
+        "add_task": "a",
+        "new_project": "n",
+        "rename_entry": "r",
+        "delete_entry": "d",
+        "move_entry": "m",
+        "change_tag": "t",
+        "show_tags": "y",
+        "toggle_project": "o",
+        "reset_entry_time": "u",
+        "toggle_all_projects": "z"
+    },
+	"stats_keys": {
+		"toggle_projects_after_task": "o",
+		"left": "h",
+		"right": "l",
+		"up": "k",
+		"down": "j"
+	},
     "styles": {
         "HEADER": "bold",
-        "HIGHLIGHTED_TASK": "yellow",
-        "NORMAL_TASK": "white",
+        "PROJECT_STYLE": "cyan bold",
+        "TASK_STYLE": "white",
+        "HIGHLIGHTED_ENTRY": "yellow",
+        "SELECTED_ENTRY": "red",
         "TASKLIST_HEADER": "magenta bold",
         "TASKLIST_BORDER": "white",
         "CURRENT_TASK_TEXT": "white",
@@ -43,7 +49,12 @@
         "LOGGER_BORDER": "white",
         "LOGGER_ERROR_BORDER": "red",
         "LOGGER_HIGHLIGHT": "blue",
-        "FOOTER": "white",
-        "SELECTED_ENTRY": "red"
+        "STATS_TODAY_BORDER_STYLE": "blue",
+        "STATS_WEEK_BORDER_STYLE": "green",
+        "STATS_MONTH_BORDER_STYLE": "red",
+        "STATS_SUBHEADERS_STYLE": "yellow bold",
+        "STATS_PROJECTS_STYLE": "cyan",
+        "STATS_NORMAL_TEXT": "white",
+        "DEFAULT_FORMAT": 1
     }
 }

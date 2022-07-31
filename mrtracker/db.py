@@ -1,8 +1,8 @@
+from datetime import datetime, timedelta
 import os
 import sqlite3
-from typing import List, Tuple
 
-from .config import DB_NAME, ROOT_PKG_DIR, USER_DATA_DIR
+from .config import DATA_DIR, DB_NAME, ROOT_PKG_DIR
 
 
 def _init_db() -> None:
@@ -17,76 +17,172 @@ def _check_db_exists() -> bool:
     return cur.fetchone()
 
 
-def _create_total_table() -> None:
+def fetch_tasks() -> list[tuple]:
     cur.execute(
-        "CREATE TEMP TABLE tt0 AS "
-        "SELECT s.task_id, sum(s.time) as total "
-        "FROM sessions s "
-        "GROUP BY s.task_id "
-        "ORDER BY s.id DESC"
-    )
-    conn.commit()
-
-
-def _create_today_table() -> None:
-    cur.execute(
-        "CREATE TEMP TABLE tt1 AS "
-        "SELECT s.task_id, sum(s.time) as today "
-        "FROM sessions s "
-        "WHERE s.date = date('now', 'localtime') "
-        "GROUP BY s.task_id"
-    )
-    conn.commit()
-
-
-def _create_month_table() -> None:
-    cur.execute(
-        "CREATE TEMP TABLE tt2 AS "
-        "SELECT s.task_id, sum(s.time) as month "
-        "FROM sessions s "
-        "WHERE s.date LIKE strftime('%Y-%m-%%', 'now') "
-        "GROUP BY s.task_id"
-    )
-    conn.commit()
-
-
-def _drop_temp_tables() -> None:
-    try:
-        cur.execute("DROP TABLE tt0")
-    except sqlite3.OperationalError:
-        pass
-    try:
-        cur.execute("DROP TABLE tt1")
-    except sqlite3.OperationalError:
-        pass
-    try:
-        cur.execute("DROP TABLE tt2")
-    except sqlite3.OperationalError:
-        pass
-    conn.commit()
-
-
-def fetch_full_info() -> List[Tuple]:
-    _create_total_table()
-    _create_today_table()
-    _create_month_table()
-    cur.execute(
-        "SELECT t.id, l.parent_id, t.name, t.type, "
-        "tt1.today, tt2.month, tt0.total "
+        "SELECT t.id, p.id, t.name, SUM(s.time), t.tags "
         "FROM tasks t "
-        "LEFT OUTER JOIN tt0 "
-        "ON t.id = tt0.task_id "
-        "LEFT OUTER JOIN tt1 "
-        "ON t.id = tt1.task_id "
-        "LEFT OUTER JOIN tt2 "
-        "ON t.id = tt2.task_id "
-        "LEFT OUTER JOIN links l "
-        "ON t.id = l.task_id "
-        "WHERE id > 0"
+        "LEFT JOIN projects p "
+        "ON t.project_id = p.id "
+        "LEFT JOIN sessions s "
+        "ON t.id = s.task_id "
+        "GROUP BY t.id "
+        "ORDER BY t.id"
     )
-    result = cur.fetchall()
-    _drop_temp_tables()
-    return result
+    return cur.fetchall()
+
+
+def fetch_projects() -> list[tuple]:
+    cur.execute(
+        "SELECT id, NULL, name, NULL, NULL FROM projects p ORDER BY p.id"
+    )
+    return cur.fetchall()
+
+
+def fetch_tasks_today() -> list[tuple]:
+    cur.execute(
+        "SELECT t.name, SUM(s.time) sum, p.name "
+        "FROM sessions s "
+        "LEFT JOIN tasks t "
+        "ON t.id = s.task_id "
+        "LEFT JOIN projects p "
+        "ON t.project_id = p.id "
+        "WHERE date = date('now', 'localtime') "
+        "GROUP BY s.task_id "
+        "ORDER BY sum DESC"
+    )
+    return cur.fetchall()
+
+
+def fetch_tasks_week() -> list[tuple]:
+    now = datetime.now()
+    week_ago = now - timedelta(days=7)
+    cur.execute(
+        "SELECT t.name, SUM(s.time) sum, p.name "
+        "FROM sessions s "
+        "LEFT JOIN tasks t "
+        "ON t.id = s.task_id "
+        "LEFT JOIN projects p "
+        "ON t.project_id = p.id "
+        "WHERE date BETWEEN (?) AND (?) "
+        "GROUP BY s.task_id "
+        "ORDER BY sum DESC",
+        (week_ago.strftime("%Y-%m-%d"), now.strftime("%Y-%m-%d")),
+    )
+    return cur.fetchall()
+
+
+def fetch_tasks_month() -> list[tuple]:
+    now = datetime.now()
+    month_ago = now - timedelta(days=30)
+    cur.execute(
+        "SELECT t.name, SUM(s.time) sum, p.name "
+        "FROM sessions s "
+        "LEFT JOIN tasks t "
+        "ON t.id = s.task_id "
+        "LEFT JOIN projects p "
+        "ON t.project_id = p.id "
+        "WHERE date BETWEEN (?) AND (?) "
+        "GROUP BY s.task_id "
+        "ORDER BY sum DESC",
+        (month_ago.strftime("%Y-%m-%d"), now.strftime("%Y-%m-%d")),
+    )
+    return cur.fetchall()
+
+
+def fetch_projects_today() -> list[tuple]:
+    cur.execute(
+        "SELECT p.name, SUM(s.time) sum "
+        "FROM sessions s "
+        "LEFT JOIN tasks t "
+        "ON t.id = s.task_id "
+        "LEFT JOIN projects p "
+        "ON t.project_id = p.id "
+        "WHERE date = date('now', 'localtime') "
+        "GROUP BY p.id "
+        "ORDER BY sum DESC"
+    )
+    return cur.fetchall()
+
+
+def fetch_projects_week() -> list[tuple]:
+    now = datetime.now()
+    week_ago = now - timedelta(days=7)
+    cur.execute(
+        "SELECT p.name, SUM(s.time) sum "
+        "FROM sessions s "
+        "LEFT JOIN tasks t "
+        "ON t.id = s.task_id "
+        "LEFT JOIN projects p "
+        "ON t.project_id = p.id "
+        "WHERE date BETWEEN (?) AND (?) "
+        "GROUP BY p.id "
+        "ORDER BY sum DESC",
+        (week_ago.strftime("%Y-%m-%d"), now.strftime("%Y-%m-%d")),
+    )
+    return cur.fetchall()
+
+
+def fetch_projects_month() -> list[tuple]:
+    now = datetime.now()
+    month_ago = now - timedelta(days=30)
+    cur.execute(
+        "SELECT p.name, SUM(s.time) sum "
+        "FROM sessions s "
+        "LEFT JOIN tasks t "
+        "ON t.id = s.task_id "
+        "LEFT JOIN projects p "
+        "ON t.project_id = p.id "
+        "WHERE date BETWEEN (?) AND (?) "
+        "GROUP BY p.id "
+        "ORDER BY sum DESC",
+        (month_ago.strftime("%Y-%m-%d"), now.strftime("%Y-%m-%d")),
+    )
+    return cur.fetchall()
+
+
+def fetch_tags_today() -> list[tuple]:
+    cur.execute(
+        "SELECT t.tags, SUM(s.time) sum "
+        "FROM sessions s "
+        "LEFT JOIN tasks t "
+        "ON t.id = s.task_id "
+        "WHERE t.tags IS NOT NULL AND date = date('now', 'localtime') "
+        "GROUP BY t.tags "
+        "ORDER BY sum DESC"
+    )
+    return cur.fetchall()
+
+
+def fetch_tags_week() -> list[tuple]:
+    now = datetime.now()
+    week_ago = now - timedelta(days=7)
+    cur.execute(
+        "SELECT t.tags, SUM(s.time) sum "
+        "FROM sessions s "
+        "LEFT JOIN tasks t "
+        "ON t.id = s.task_id "
+        "WHERE t.tags IS NOT NULL AND date BETWEEN (?) AND (?) "
+        "GROUP BY t.tags "
+        "ORDER BY sum DESC",
+        (week_ago.strftime("%Y-%m-%d"), now.strftime("%Y-%m-%d")),
+    )
+    return cur.fetchall()
+
+
+def fetch_tags_month() -> list[tuple]:
+    now = datetime.now()
+    month_ago = now - timedelta(days=30)
+    cur.execute(
+        "SELECT t.tags, SUM(s.time) sum "
+        "FROM sessions s "
+        "LEFT JOIN tasks t "
+        "ON t.id = s.task_id "
+        "WHERE t.tags IS NOT NULL AND date BETWEEN (?) AND (?) "
+        "GROUP BY t.tags "
+        "ORDER BY sum DESC",
+        (month_ago.strftime("%Y-%m-%d"), now.strftime("%Y-%m-%d")),
+    )
+    return cur.fetchall()
 
 
 def add_session(task_id: int, date: str, time: int) -> None:
@@ -97,42 +193,97 @@ def add_session(task_id: int, date: str, time: int) -> None:
     conn.commit()
 
 
-def add_task(task: str, parent_id: int, etype: str) -> None:
-    cur.execute("INSERT INTO tasks (name, type) VALUES (?, ?)", (task, etype))
-    cur.execute("SELECT id from tasks WHERE id = (SELECT MAX(id) from tasks)")
-    task_id = cur.fetchone()[0]
-    cur.execute("INSERT INTO links VALUES (?, ?)", (task_id, parent_id))
+def add_project(name: str) -> None:
+    cur.execute("INSERT INTO projects (name) VALUES (?)", (name,))
     conn.commit()
 
 
-def delete_tasks(task_ids: list[int]) -> None:
-    placeholders = ", ".join("?" for i in task_ids)
-    cur.execute("DELETE FROM tasks WHERE id in (%s)" % placeholders, task_ids)
+def add_task(name: str, project_id: int) -> None:
+    cur.execute(
+        "INSERT INTO tasks (name, project_id) VALUES (?, ?)",
+        (name, project_id),
+    )
+    conn.commit()
+
+
+def delete_project(project_id: int) -> None:
+    cur.execute("DELETE FROM projects WHERE id=(?)", (project_id,))
+    conn.commit()
+
+
+def delete_task(task_id: int) -> None:
+    cur.execute("DELETE FROM tasks WHERE id=(?)", (task_id,))
+    conn.commit()
+
+
+def rename_project(project_id: int, new_name: str) -> None:
+    cur.execute(
+        "UPDATE projects SET name = (?) WHERE id=(?)",
+        (new_name, project_id),
+    )
+    conn.commit()
+
+
+def rename_task(task_id: int, new_name: str) -> None:
+    cur.execute(
+        "UPDATE tasks SET name = (?) WHERE id=(?)",
+        (new_name, task_id),
+    )
+    conn.commit()
+
+
+def update_tags(task_ids: list[int], tag: str | None) -> None:
+    placeholders = ", ".join("?" for _ in task_ids)
+    cur.execute(
+        "UPDATE tasks SET tags=(?) WHERE id in (%s)" % placeholders,
+        (tag, *task_ids),
+    )
+    conn.commit()
+
+
+def change_project(task_id: int, new_project_id: int) -> None:
+    cur.execute(
+        "UPDATE tasks SET project_id = (?) WHERE id=(?)",
+        (new_project_id, task_id),
+    )
+    conn.commit()
+
+
+def swap_projects(id1: int, id2: int) -> None:
+    cur.execute("UPDATE projects SET id=-1 WHERE id=(?)", (id1,))
+    cur.execute("UPDATE projects SET id=(?) WHERE id=(?)", (id1, id2))
+    cur.execute("UPDATE projects SET id=(?) WHERE id=-1", (id2,))
+    conn.commit()
+
+
+def swap_tasks(id1: int, id2: int) -> None:
+    cur.execute("UPDATE tasks SET id=-1 WHERE id=(?)", (id1,))
+    cur.execute("UPDATE tasks SET id=(?) WHERE id=(?)", (id1, id2))
+    cur.execute("UPDATE tasks SET id=(?) WHERE id=-1", (id2,))
     conn.commit()
 
 
 def delete_sessions_by_task_ids(task_ids: list[int]) -> None:
-    placeholders = ", ".join("?" for i in task_ids)
+    placeholders = ", ".join("?" for _ in task_ids)
     cur.execute(
         "DELETE FROM sessions WHERE task_id in (%s)" % placeholders, task_ids
     )
     conn.commit()
 
 
-def rename_task(id: int, new_name: str) -> None:
-    cur.execute("UPDATE tasks SET name = (?) WHERE id=(?)", (new_name, id))
-    conn.commit()
+def get_next_task_id() -> int:
+    cur.execute("SELECT MAX(id) FROM tasks")
+    id = cur.fetchone()[0]
+    return id + 1 if id else 1
 
 
-def change_parent(task_id: int, new_parent_id: int) -> None:
-    cur.execute(
-        "UPDATE links SET parent_id = (?) WHERE task_id=(?)",
-        (new_parent_id, task_id),
-    )
-    conn.commit()
+def get_next_project_id() -> int:
+    cur.execute("SELECT MAX(id) FROM projects")
+    id = cur.fetchone()[0]
+    return id + 1 if id else 1
 
 
-conn = sqlite3.connect(os.path.join(USER_DATA_DIR, DB_NAME))
+conn = sqlite3.connect(os.path.join(DATA_DIR, DB_NAME))
 cur = conn.cursor()
 
 if not _check_db_exists():
