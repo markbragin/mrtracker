@@ -53,29 +53,25 @@ class StatsView(GridView):
         grid.add_column("Time", justify="right", no_wrap=True)
         grid.row_styles = ["white"]
         if interval == "today":
-            grid.add_row("[magenta]Projects:")
-            for row in db.fetch_projects_today():
-                grid.add_row(row[0], sec_to_str(row[1]))
-            grid.add_row(end_section=True)
-            grid.add_row("[magenta]Tasks:")
-            for row in db.fetch_tasks_today():
-                grid.add_row(row[0], sec_to_str(row[1]))
-            return Panel(grid, title="Today", style="blue")
+            projects = db.fetch_projects_today()
+            tasks = db.fetch_tasks_today()
+            title = "Today"
+            style = "blue"
         elif interval == "week":
-            grid.add_row("[magenta]Projects:")
-            for row in db.fetch_projects_week():
-                grid.add_row(row[0], sec_to_str(row[1]))
-            grid.add_row(end_section=True)
-            grid.add_row("[magenta]Tasks:")
-            for row in db.fetch_tasks_week():
-                grid.add_row(row[0], sec_to_str(row[1]))
-            return Panel(grid, title="Last 7 days", style="green")
-        else:
-            grid.add_row("[magenta]Projects:")
-            for row in db.fetch_projects_month():
-                grid.add_row(row[0], sec_to_str(row[1]))
-            grid.add_row(end_section=True)
-            grid.add_row("[magenta]Tasks:")
-            for row in db.fetch_tasks_month():
-                grid.add_row(row[0], sec_to_str(row[1]))
-            return Panel(grid, title="Last 30 days", style="red")
+            projects = db.fetch_projects_week()
+            tasks = db.fetch_tasks_week()
+            title = "Last 7 days"
+            style = "green"
+        elif interval == "month":
+            projects = db.fetch_projects_month()
+            tasks = db.fetch_tasks_month()
+            title = "Last 30 days"
+            style = "red"
+        grid.add_row("[magenta]Projects:")
+        for row in projects:
+            grid.add_row(row[0], sec_to_str(row[1]))
+        grid.add_row(end_section=True)
+        grid.add_row("[magenta]Tasks:")
+        for row in tasks:
+            grid.add_row(row[0], sec_to_str(row[1]))
+        return Panel(grid, title=title, style=style)
