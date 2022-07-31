@@ -136,9 +136,11 @@ class TaskList(NestedList):
             and selected_entry.project_id == curr_entry.project_id
         ):
             self._swap_entries()
+            await self.app.post_message_from_child(Upd(self))
             ialogger.update("[b]DONE[/]")
         elif selected_entry.type == "task" and curr_entry.type == "project":
             self._change_project()
+            await self.app.post_message_from_child(Upd(self))
             ialogger.update("[b]DONE[/]")
         else:
             hl = config.styles["LOGGER_HIGHLIGHT"]
@@ -152,8 +154,9 @@ class TaskList(NestedList):
     def _swap_entries(self) -> None:
         one = self.nodes[self._selected]
         two = self.nodes[self.cursor]
-        self._swap_nodes(one, two)
+        self._swap_ids(one, two)
         self._swap_trees(one, two)
+        self._swap_nodes(one, two)
         if one.data.type == "task":
             db.swap_tasks(one.data.id, two.data.id)
         else:
@@ -163,28 +166,26 @@ class TaskList(NestedList):
         self._action = None
         self.refresh(layout=True)
 
+    def _swap_ids(self, one: TreeNode, two: TreeNode) -> None:
+        one.data.id, two.data.id = two.data.id, one.data.id
+
     def _swap_nodes(self, one: TreeNode, two: TreeNode) -> None:
         children = one.parent.children
-        one_idx = children.index(one)
-        two_idx = children.index(two)
-
-        tmp = children[one_idx]
-        children[one_idx] = children[two_idx]
-        children[two_idx] = tmp
+        idx1 = children.index(one)
+        idx2 = children.index(two)
+        children[idx1], children[idx2] = children[idx2], children[idx1]
 
     def _swap_trees(self, one: TreeNode, two: TreeNode) -> None:
         children = one.parent.tree.children
-        one_idx = children.index(one.tree)
-        two_idx = children.index(two.tree)
-
-        tmp = children[one_idx]
-        children[one_idx] = children[two_idx]
-        children[two_idx] = tmp
+        idx1 = children.index(one.tree)
+        idx2 = children.index(two.tree)
+        children[idx1], children[idx2] = children[idx2], children[idx1]
 
     def _change_project(self) -> None:
         selected_node = self.nodes[self._selected]
         curr_node = self.nodes[self.cursor]
         self._move_to_new_parent(selected_node, curr_node)
+        selected_node.data.project_id = curr_node.data.id
         db.change_project(selected_node.data.id, curr_node.data.id)
         self.sum_projects_time()
         self._action = None
@@ -221,8 +222,6 @@ class TaskList(NestedList):
 
     async def go_up(self) -> None:
         if self.nodes[self.cursor].previous_node is not self.root.children[0]:
-            await self.cursor_up()
-        elif self._action is Action.MOVE:
             await self.cursor_up()
 
     async def add_task(self) -> None:

@@ -26,9 +26,17 @@ class Entry(TextInput):
     def id(self) -> int:
         return self._id
 
+    @id.setter
+    def id(self, new_id) -> None:
+        self._id = new_id
+
     @property
     def project_id(self) -> int | None:
         return self._project_id
+
+    @project_id.setter
+    def project_id(self, new_project_id: int) -> None:
+        self._project_id = new_project_id
 
     @property
     def title(self) -> str:
