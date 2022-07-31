@@ -267,12 +267,14 @@ def delete_sessions_by_task_ids(task_ids: list[int]) -> None:
 
 def get_next_task_id() -> int:
     cur.execute("SELECT MAX(id) FROM tasks")
-    return cur.fetchone()[0] + 1
+    id = cur.fetchone()[0]
+    return id + 1 if id else 1
 
 
 def get_next_project_id() -> int:
     cur.execute("SELECT MAX(id) FROM projects")
-    return cur.fetchone()[0] + 1
+    id = cur.fetchone()[0]
+    return id + 1 if id else 1
 
 
 conn = sqlite3.connect(os.path.join(DATA_DIR, DB_NAME))

@@ -63,6 +63,7 @@ class TaskList(NestedList):
     async def add_header(self) -> None:
         self.id = -2
         await self.add(NodeID(0), "header", None)
+        self.id = 0
 
     async def _build_tree(self) -> None:
         for row in self._projects:
@@ -242,14 +243,12 @@ class TaskList(NestedList):
         node.data.clear_content()
 
     async def add_project(self) -> None:
-        if not self._valid_cursor():
-            return
-        node = self.nodes[self.cursor]
         self._mem = self.cursor
         await self.add_root_child(
             "project",
             generate_entry(db.get_next_project_id(), None),
         )
+        node = self.nodes[self.cursor]
         self._action = Action.ADD
         self._mode = Mode.INSERT
         node.data.clear_content()
@@ -325,6 +324,8 @@ class TaskList(NestedList):
         await self.nodes[self.cursor].toggle()
 
     async def toggle_all_projects(self) -> None:
+        if not self._valid_cursor():
+            return
         for project in self.root.children:
             await project.expand(not self.root.children[-1].expanded)
         if self.nodes[self.cursor].data.type == "task":
