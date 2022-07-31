@@ -48,9 +48,9 @@ class StatsView(GridView):
         await self.month.update(self._get_table("month"))
 
     def _get_table(self, interval: Literal["month", "week", "today"]) -> Panel:
-        grid = Table.grid(expand=True)
-        grid.add_column("Task")
-        grid.add_column("Time")
+        grid = Table.grid(expand=True, padding=(0, 1))
+        grid.add_column("Task", justify="left", overflow="fold")
+        grid.add_column("Time", justify="right", no_wrap=True)
         grid.row_styles = ["white"]
         if interval == "today":
             for row in db.fetch_today():
