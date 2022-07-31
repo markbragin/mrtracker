@@ -1,7 +1,7 @@
 import os
 import sqlite3
 
-from .config import DB_NAME, ROOT_PKG_DIR, USER_DATA_DIR
+from .config import DB_NAME, ROOT_PKG_DIR, DATA_DIR
 
 
 def _init_db() -> None:
@@ -120,7 +120,7 @@ def get_next_project_id() -> int:
     return cur.fetchone()[0] + 1
 
 
-conn = sqlite3.connect(os.path.join(USER_DATA_DIR, DB_NAME))
+conn = sqlite3.connect(os.path.join(DATA_DIR, DB_NAME))
 cur = conn.cursor()
 
 if not _check_db_exists():
