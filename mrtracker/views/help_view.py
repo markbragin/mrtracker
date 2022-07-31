@@ -41,6 +41,10 @@ class HelpView(DockView):
                 Align(key, "right", style="blue"),
                 " ".join(descrip.split("_")),
             )
+        table.add_row(
+            Align("1, 2, 3", "right", style="blue"),
+            "change_format",
+        )
         return table
 
     async def on_key(self, event: events.Key) -> None:
