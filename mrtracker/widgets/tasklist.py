@@ -119,32 +119,67 @@ class TaskList(NestedList):
             self._list_style = int(key)
 
     async def _handle_moving_entry(self, cancel: bool) -> None:
-        selected_node = self.nodes[self._selected]
-        new_parent = self.nodes[self.cursor]
-        hl = config.styles["LOGGER_HIGHLIGHT"]
+        selected_entry = self.nodes[self._selected].data
+        curr_entry = self.nodes[self.cursor].data
         if cancel:
             ialogger.update("Canceled")
+            self._action = None
             self._selected = None
             return
-        elif self.cursor == selected_node.parent.id:
-            ialogger.update("Select ANOTHER project", error=True)
-            return
-        elif self.nodes[self.cursor].data.type == "project":
-            ialogger.update(
-                f"[{hl}]{selected_node.data.title}[/]: "
-                + f"[{hl}]{selected_node.parent.data.title}[/] -> "
-                + f"[{hl}]{new_parent.data.title}[/]"
-            )
-            self._move_to_new_parent(selected_node, new_parent)
-            db.change_project(selected_node.data.id, new_parent.data.id)
-            self.sum_projects_time()
+        elif (
+            selected_entry.type == curr_entry.type
+            and selected_entry.project_id == curr_entry.project_id
+        ):
+            self._swap_entries()
+        elif selected_entry.type == "task" and curr_entry.type == "project":
+            self._change_project()
         else:
+            hl = config.styles["LOGGER_HIGHLIGHT"]
             ialogger.update(
-                f"Can't move [{hl}]{selected_node.label}[/] to "
-                f"[{hl}]{new_parent.label}[/]",
+                f"Can't swap [{hl}]{selected_entry.title}[/] ⮀ "
+                f"[{hl}]{curr_entry.title}[/]",
                 error=True,
             )
             return
+
+    def _swap_entries(self) -> None:
+        one = self.nodes[self._selected]
+        two = self.nodes[self.cursor]
+        self._swap_nodes(one, two)
+        self._swap_trees(one, two)
+        if one.data.type == "task":
+            db.swap_tasks(one.data.id, two.data.id)
+        else:
+            db.swap_projects(one.data.id, two.data.id)
+
+        self._selected = None
+        self._action = None
+        self.refresh(layout=True)
+
+    def _swap_nodes(self, one: TreeNode, two: TreeNode) -> None:
+        children = one.parent.children
+        one_idx = children.index(one)
+        two_idx = children.index(two)
+
+        tmp = children[one_idx]
+        children[one_idx] = children[two_idx]
+        children[two_idx] = tmp
+
+    def _swap_trees(self, one: TreeNode, two: TreeNode) -> None:
+        children = one.parent.tree.children
+        one_idx = children.index(one.tree)
+        two_idx = children.index(two.tree)
+
+        tmp = children[one_idx]
+        children[one_idx] = children[two_idx]
+        children[two_idx] = tmp
+
+    def _change_project(self) -> None:
+        selected_node = self.nodes[self._selected]
+        curr_node = self.nodes[self.cursor]
+        self._move_to_new_parent(selected_node, curr_node)
+        db.change_project(selected_node.data.id, curr_node.data.id)
+        self.sum_projects_time()
         self._action = None
         self._selected = None
         self.refresh(layout=True)
@@ -262,12 +297,9 @@ class TaskList(NestedList):
     def move_entry(self) -> None:
         if not self._valid_cursor():
             return
-        if self.nodes[self.cursor].data.type == "project":
-            ialogger.update("Can't move project", error=True)
-            return
         self._action = Action.MOVE
         self._selected = self.nodes[self.cursor].id
-        ialogger.update("Select another project")
+        ialogger.update("Select target")
 
     def _valid_cursor(self) -> bool:
         return self.cursor not in [self.root.id, self.root.children[0].id]

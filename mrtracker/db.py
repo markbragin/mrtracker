@@ -25,13 +25,14 @@ def fetch_tasks() -> list[tuple]:
         "ON t.project_id = p.id "
         "LEFT JOIN sessions s "
         "ON t.id = s.task_id "
-        "GROUP BY t.id"
+        "GROUP BY t.id "
+        "ORDER BY t.id"
     )
     return cur.fetchall()
 
 
 def fetch_projects() -> list[tuple]:
-    cur.execute("SELECT id, NULL, name, NULL FROM projects ")
+    cur.execute("SELECT id, NULL, name, NULL FROM projects p ORDER BY p.id")
     return cur.fetchall()
 
 
@@ -132,6 +133,20 @@ def change_project(task_id: int, new_project_id: int) -> None:
         "UPDATE tasks SET project_id = (?) WHERE id=(?)",
         (new_project_id, task_id),
     )
+    conn.commit()
+
+
+def swap_projects(id1: int, id2: int) -> None:
+    cur.execute("UPDATE projects SET id=-1 WHERE id=(?)", (id1,))
+    cur.execute("UPDATE projects SET id=(?) WHERE id=(?)", (id1, id2))
+    cur.execute("UPDATE projects SET id=(?) WHERE id=-1", (id2,))
+    conn.commit()
+
+
+def swap_tasks(id1: int, id2: int) -> None:
+    cur.execute("UPDATE tasks SET id=-1 WHERE id=(?)", (id1,))
+    cur.execute("UPDATE tasks SET id=(?) WHERE id=(?)", (id1, id2))
+    cur.execute("UPDATE tasks SET id=(?) WHERE id=-1", (id2,))
     conn.commit()
 
 
