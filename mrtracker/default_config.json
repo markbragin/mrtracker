@@ -26,6 +26,9 @@
         "reset_entry_time": "u",
         "toggle_all_projects": "z"
     },
+	"stats_keys": {
+		"toggle_projects_after_task": "o"
+	},
     "styles": {
         "HEADER": "bold",
         "PROJECT_STYLE": "cyan bold",
@@ -42,6 +45,11 @@
         "LOGGER_BORDER": "white",
         "LOGGER_ERROR_BORDER": "red",
         "LOGGER_HIGHLIGHT": "blue",
+        "STATS_TODAY_BORDER_STYLE": "blue",
+        "STATS_WEEK_BORDER_STYLE": "green",
+        "STATS_MONTH_BORDER_STYLE": "red",
+        "STATS_SUBHEADERS_STYLE": "yellow bold",
+        "STATS_PROJECTS_STYLE": "cyan",
         "DEFAULT_FORMAT": 1
     }
 }
