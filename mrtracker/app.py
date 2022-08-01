@@ -48,7 +48,6 @@ class TimeTracker(App):
 
     async def action_reset_focus(self) -> None:
         self.current_view = self.main_v
-        await self.main_v.tasklist.focus()
 
     def action_switch_timer(self) -> None:
         self.main_v.switch_timer()

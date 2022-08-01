@@ -16,6 +16,8 @@ from .in_app_logger import ialogger
 from .nested_list import NestedList
 
 
+HL = config.styles["LOGGER_HIGHLIGHT"]
+
 cyrillic_layout = dict(
     zip(
         map(
@@ -90,11 +92,12 @@ class TaskList(NestedList):
 
     async def _handle_keypress_in_normal_mode(self, event: events.Key) -> None:
         key = event.key.translate(cyrillic_layout)
-        if event.key in ["escape", "enter"]:
-            cancel = event.key == "escape"
+        if event.key == "escape":
+            await self._cancel()
+        elif event.key == "enter":
             if self._action == Action.MOVE:
-                await self._handle_moving_entry(cancel)
-            elif event.key == "enter":
+                await self._handle_moving_entry()
+            else:
                 self._handle_starting_task()
         elif key in [config.tasklist_keys["go_down"], "down"]:
             await self.go_down()
@@ -123,33 +126,36 @@ class TaskList(NestedList):
         elif key in ["1", "2", "3"]:
             self._list_style = int(key)
 
-    async def _handle_moving_entry(self, cancel: bool) -> None:
-        selected_entry = self.nodes[self._selected].data
-        curr_entry = self.nodes[self.cursor].data
-        if cancel:
-            ialogger.update("Canceled")
-            self._action = None
-            self._selected = None
+    async def _cancel(self) -> None:
+        if not self._action:
             return
-        elif (
-            selected_entry.type == curr_entry.type
-            and selected_entry.project_id == curr_entry.project_id
-        ):
+        elif self._action is Action.ADD:
+            await self.remove_node()
+        ialogger.update("Canceled")
+        self._action = None
+        self._selected = None
+        self._mode = Mode.NORMAL
+        self.cursor = self._mem
+
+    async def _handle_moving_entry(self) -> None:
+        selected = self.nodes[self._selected]
+        curr = self.nodes[self.cursor]
+        if selected.parent is curr.parent:
             self._swap_entries()
-            await self.app.post_message_from_child(Upd(self))
-            ialogger.update("[b]DONE[/]")
-        elif selected_entry.type == "task" and curr_entry.type == "project":
+        elif selected.data.type == "task" and curr.data.type == "project":
             self._change_project()
-            await self.app.post_message_from_child(Upd(self))
-            ialogger.update("[b]DONE[/]")
         else:
-            hl = config.styles["LOGGER_HIGHLIGHT"]
             ialogger.update(
-                f"Can't swap [{hl}]{selected_entry.title}[/] ⮀ "
-                f"[{hl}]{curr_entry.title}[/]",
+                f"Can't swap [{HL}]{selected.data.title}[/] ⮀ "
+                f"[{HL}]{curr.data.title}[/]",
                 error=True,
             )
             return
+        self.cursor = self._selected if self._selected else self.cursor
+        self._selected = None
+        self._action = None
+        await self.app.post_message_from_child(Upd(self))
+        ialogger.update("[b]DONE[/]")
 
     def _swap_entries(self) -> None:
         one = self.nodes[self._selected]
@@ -161,10 +167,6 @@ class TaskList(NestedList):
             db.swap_tasks(one.data.id, two.data.id)
         else:
             db.swap_projects(one.data.id, two.data.id)
-
-        self._selected = None
-        self._action = None
-        self.refresh(layout=True)
 
     def _swap_ids(self, one: TreeNode, two: TreeNode) -> None:
         one.data.id, two.data.id = two.data.id, one.data.id
@@ -188,9 +190,6 @@ class TaskList(NestedList):
         selected_node.data.project_id = curr_node.data.id
         db.change_project(selected_node.data.id, curr_node.data.id)
         self.sum_projects_time()
-        self._action = None
-        self._selected = None
-        self.refresh(layout=True)
 
     def _move_to_new_parent(self, node: TreeNode, new_par: TreeNode) -> None:
         new_par.tree.children.append(node.tree)
@@ -204,12 +203,7 @@ class TaskList(NestedList):
 
     def _handle_starting_task(self) -> None:
         if self.current_task:
-            ialogger.update(
-                "[b]Timer is running[/]. "
-                "To start new task restart the timer first.",
-                error=True,
-            )
-            return
+            ialogger.update("[b]Timer is already running[/]", error=True)
         else:
             entry = self.nodes[self.cursor].data
             if entry.type == "project":
@@ -249,14 +243,14 @@ class TaskList(NestedList):
             "project",
             generate_entry(db.get_next_project_id(), None),
         )
-        node = self.nodes[self.cursor]
         self._action = Action.ADD
         self._mode = Mode.INSERT
-        node.data.clear_content()
+        self.nodes[self.cursor].data.clear_content()
 
     def rename_entry(self) -> None:
         if not self._valid_cursor():
             return
+        self._mem = self.cursor
         self._action = Action.RENAME
         self._mode = Mode.INSERT
         entry = self.nodes[self.cursor].data
@@ -266,41 +260,31 @@ class TaskList(NestedList):
     def delete_entry(self) -> None:
         if not self._valid_cursor():
             return
+        self._mem = self.cursor
         self._action = Action.DELETE
         self._mode = Mode.INSERT
         entry = self.nodes[self.cursor].data
         entry.clear_content()
-        hl = config.styles["LOGGER_HIGHLIGHT"]
         ialogger.update(
-            "[b]Delete[/]\n"
-            + f"Type [{hl}]'delete'[/] and press [{hl}]enter[/]"
+            f"Type [{HL}]'delete'[/] to delete [{HL}]{entry.title}[/]"
         )
 
     def reset_entry_time(self) -> None:
         if not self._valid_cursor():
             return
-
+        self._mem = self.cursor
         entry = self.nodes[self.cursor].data
         self._action = Action.RESET
         self._mode = Mode.INSERT
         entry.clear_content()
-        hl = config.styles["LOGGER_HIGHLIGHT"]
-        if entry.type == "project":
-            ialogger.update(
-                "[b]Reset[/]\n"
-                f"Type [{hl}]'reset'[/] and press [{hl}]enter[/] "
-                f"to reset time OF ALL '[{hl}]{entry.title.upper()}[/]' TASKS"
-            )
-        else:
-            ialogger.update(
-                "[b]Reset[/]\n"
-                f"Type [{hl}]'reset'[/] and press [{hl}]enter[/] "
-                "to reset task time"
-            )
+        ialogger.update(
+            f"Type [{HL}]'reset'[/] to reset [{HL}]{entry.title}[/] time"
+        )
 
     def move_entry(self) -> None:
         if not self._valid_cursor():
             return
+        self._mem = self.cursor
         self._action = Action.MOVE
         self._selected = self.nodes[self.cursor].id
         ialogger.update("Select target")
@@ -308,6 +292,7 @@ class TaskList(NestedList):
     def change_tag(self) -> None:
         if not self._valid_cursor():
             return
+        self._mem = self.cursor
         self._action = Action.ADD_TAG
         self._mode = Mode.INSERT
         self.nodes[self.cursor].data.clear_content()
@@ -334,109 +319,101 @@ class TaskList(NestedList):
 
     async def _handle_keypress_in_insert_mode(self, event: events.Key) -> None:
         self.nodes[self.cursor].data.on_key(event)
-        if event.key in ["escape", "enter"]:
-            cancel = event.key == "escape"
+        if event.key == "escape":
+            await self._cancel()
+        elif event.key == "enter":
             if self._action is Action.ADD:
-                await self._handle_adding_entry(cancel)
+                await self._handle_adding_entry()
             elif self._action is Action.RENAME:
-                self._handle_renaming_entry(cancel)
+                await self._handle_renaming_entry()
             elif self._action is Action.DELETE:
-                await self._handle_deleting_entry(cancel)
+                await self._handle_deleting_entry()
             elif self._action is Action.RESET:
-                await self._handle_resetting_task_time(cancel)
+                await self._handle_resetting_task_time()
             elif self._action is Action.ADD_TAG:
-                await self._handle_changing_tag(cancel)
-
+                await self._handle_changing_tag()
             self._action = None
             self._mode = Mode.NORMAL
         event.stop()
         self.refresh()
 
-    async def _handle_adding_entry(self, cancel: bool = False) -> None:
+    async def _handle_adding_entry(self) -> None:
         entry = self.nodes[self.cursor].data
-        if entry.content == entry.title == "" or cancel:
-            ialogger.update("Canceled")
-            await self.remove_node()
-            self.cursor = self._mem
-        else:
-            entry.title = entry.content
-            if entry.type == "project":
-                db.add_project(entry.title)
-            else:
-                db.add_task(entry.title, entry.project_id)
-
-    def _handle_renaming_entry(self, cancel: bool = False) -> None:
-        entry = self.nodes[self.cursor].data
-        if any((cancel, not entry.content, entry.title == entry.content)):
-            ialogger.update("Canceled")
+        if entry.content == entry.title == "":
+            await self._cancel()
             return
-        else:
-            entry.title = entry.content
-            if entry.type == "project":
-                db.rename_project(entry.id, entry.title)
-            else:
-                db.rename_task(entry.id, entry.title)
-            ialogger.update("[b]DONE[/]")
 
-    async def _handle_deleting_entry(self, cancel: bool = False) -> None:
+        entry.title = entry.content
+        if entry.type == "project":
+            db.add_project(entry.title)
+        else:
+            db.add_task(entry.title, entry.project_id)
+
+    async def _handle_renaming_entry(self) -> None:
+        entry = self.nodes[self.cursor].data
+        if not entry.content or entry.title == entry.content:
+            await self._cancel()
+            return
+
+        entry.title = entry.content
+        if entry.type == "project":
+            db.rename_project(entry.id, entry.title)
+        else:
+            db.rename_task(entry.id, entry.title)
+        ialogger.update("[b]DONE[/]")
+
+    async def _handle_deleting_entry(self) -> None:
         node = self.nodes[self.cursor]
         entry = node.data
-        if cancel:
-            ialogger.update("Canceled")
-        elif entry.content == "delete":
-            if entry.type == "project":
-                db.delete_project(entry.id)
-            else:
-                db.delete_task(entry.id)
-            await self.remove_node()
-            await self.go_down()
-            self.sum_projects_time()
-            await self.app.post_message_from_child(Upd(self))
-            ialogger.update("[b]DONE[/]")
-        else:
-            ialogger.update("Canceled")
+        if entry.content != "delete":
+            await self._cancel()
+            return
 
-    async def _handle_resetting_task_time(self, cancel: bool = False) -> None:
+        if entry.type == "project":
+            db.delete_project(entry.id)
+        else:
+            db.delete_task(entry.id)
+        await self.remove_node()
+        await self.go_down()
+        self.sum_projects_time()
+        await self.app.post_message_from_child(Upd(self))
+        ialogger.update("[b]DONE[/]")
+
+    async def _handle_resetting_task_time(self) -> None:
         node = self.nodes[self.cursor]
         entry = node.data
-        if cancel:
-            ialogger.update("Canceled")
-        elif entry.content == "reset":
-            if entry.type == "project":
-                db.delete_sessions_by_task_ids(
-                    [t.data.id for t in node.children]
-                )
+        if entry.content != "reset":
+            await self._cancel()
+            return
 
-                for t in node.children:
-                    t.data.time = 0
-            else:
-                db.delete_sessions_by_task_ids([entry.id])
-                entry.time = 0
-            self.sum_projects_time()
-            await self.app.post_message_from_child(Upd(self))
-            ialogger.update("[b]DONE[/]")
+        if entry.type == "project":
+            db.delete_sessions_by_task_ids(
+                [child.data.id for child in node.children]
+            )
+            for t in node.children:
+                t.data.time = 0
         else:
-            ialogger.update("Canceled")
+            db.delete_sessions_by_task_ids([entry.id])
+            entry.time = 0
+        self.sum_projects_time()
+        await self.app.post_message_from_child(Upd(self))
+        ialogger.update("[b]DONE[/]")
 
-    async def _handle_changing_tag(self, cancel: bool = False) -> None:
+    async def _handle_changing_tag(self) -> None:
         node = self.nodes[self.cursor]
         entry = node.data
-        if cancel:
-            ialogger.update("Canceled")
+        new_tag = entry.content if entry.content else None
+        task_ids = []
+        if entry.type == "project":
+            for task_node in node.children:
+                task_node.data.tag = new_tag
+                task_ids.append(task_node.data.id)
         else:
-            new_tag = entry.content if entry.content else None
-            task_ids = []
-            if entry.type == "project":
-                for task_node in node.children:
-                    task_node.data.tag = new_tag
-                    task_ids.append(task_node.data.id)
-            else:
-                entry.tag = new_tag
-                task_ids.append(entry.id)
-            db.update_tags(task_ids, new_tag)
-            self.sum_projects_time()
-            await self.app.post_message_from_child(Upd(self))
-            ialogger.update("[b]DONE[/]")
+            entry.tag = new_tag
+            task_ids.append(entry.id)
+        db.update_tags(task_ids, new_tag)
+        await self.app.post_message_from_child(Upd(self))
+        ialogger.update("[b]DONE[/]")
 
     def add_time(self, time: int) -> None:
         self.current_task.time += time

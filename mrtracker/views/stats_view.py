@@ -53,7 +53,7 @@ class StatsView(GridView):
                 self._focused.page_up()
 
     async def _focus_left(self) -> None:
-        if self._focused == None:
+        if self._focused is None:
             self._focused = self.month
         elif self._focused == self.month:
             self._focused = self.week
@@ -61,7 +61,7 @@ class StatsView(GridView):
             self._focused = self.today
 
     async def _focus_right(self) -> None:
-        if self._focused == None:
+        if self._focused is None:
             self._focused = self.today
         elif self._focused == self.today:
             self._focused = self.week
