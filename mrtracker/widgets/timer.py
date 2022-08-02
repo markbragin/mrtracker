@@ -20,28 +20,43 @@ class Timer(Widget, can_focus=False):
         self.set_interval(0.5, self.refresh)
 
     @property
-    def time(self) -> int:
+    def elapsed_time(self) -> int:
         return self.timer.get_elapsed_time()
 
     @property
-    def time_str(self) -> str:
+    def elapsed_time_str(self) -> str:
         return self.timer.get_elapsed_time_str()
+
+    @property
+    def saved_time(self) -> int:
+        return self.timer.get_saved_time()
+
+    @property
+    def start_time(self) -> str:
+        return self.timer.get_start_time_str()
+
+    @property
+    def end_time(self) -> str:
+        return self.timer.get_end_time_str()
 
     @property
     def working(self) -> bool:
         return self._working
 
-    def switch_timer(self):
-        self.timer.switch()
+    def start(self) -> None:
+        self.timer.start()
 
-    def restart_timer(self):
+    def stop(self) -> None:
+        self.timer.stop()
+
+    def restart(self):
         self.timer.restart()
 
     def render(self) -> RenderableType:
         self._working = self.timer.on
         self.panel = Panel(
             Align.center(
-                self.time_str,
+                self.elapsed_time_str,
                 vertical="middle",
                 style=config.styles["TIMER_TEXT"],
             ),
