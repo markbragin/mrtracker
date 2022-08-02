@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from rich.align import Align
 from rich.console import RenderableType
@@ -21,28 +21,27 @@ class Timer(Widget, can_focus=False):
     async def on_mount(self):
         self.set_interval(0.5, self.refresh)
 
-    def get_elapsed_time(self) -> int:
-        """returns elapsed time in seconds"""
-        return self.stopwatch.elapsed_time.seconds
+    @property
+    def elapsed_time(self) -> timedelta:
+        return self.stopwatch.elapsed_time
 
     def get_elapsed_time_str(self) -> str:
         """returns formatted elapsed time [%H:]%M:%S"""
         return sec_to_str(self.stopwatch.elapsed_time.seconds)
 
-    def get_saved_time(self) -> int:
-        """returns saved time in seconds"""
-        return self.stopwatch.saved_time.seconds
+    @property
+    def saved_time(self) -> timedelta:
+        return self.stopwatch.saved_time
 
-    def get_start_time(self) -> str:
-        """returns formatted start time %H:%M:%S"""
-        return self.stopwatch.start_time.strftime("%H:%M:%S")
+    @property
+    def start_time(self) -> datetime:
+        return self.stopwatch.start_time
 
-    def get_end_time(self) -> str:
-        """returns formatted end time %H:%M:%S"""
-        return (
-            self.stopwatch.start_time
-            + timedelta(seconds=self.stopwatch.saved_time.seconds)
-        ).strftime("%H:%M:%S")
+    @property
+    def end_time(self) -> datetime:
+        return self.stopwatch.start_time + timedelta(
+            seconds=self.stopwatch.saved_time.seconds
+        )
 
     @property
     def working(self) -> bool:
