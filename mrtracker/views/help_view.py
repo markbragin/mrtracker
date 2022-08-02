@@ -56,13 +56,12 @@ class HelpView(DockView):
         self.table.add_row(end_section=True)
 
     def _insert_stats_keys(self) -> None:
-        self.table.add_row("[magenta]Tasklist keys:")
+        self.table.add_row("[magenta]Stats keys:")
         for descrip, key in config.stats_keys.items():
             self.table.add_row(
                 Align(key, "right", style="blue"),
                 " ".join(descrip.split("_")),
             )
-
 
     async def on_key(self, event: events.Key) -> None:
         if event.key in [config.tasklist_keys["go_down"], "down"]:
