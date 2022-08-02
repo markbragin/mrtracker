@@ -2,14 +2,7 @@ from datetime import datetime, timedelta
 import os
 import sqlite3
 
-from .config import DATA_DIR, DB_NAME, ROOT_PKG_DIR
-
-
-def _init_db() -> None:
-    with open(os.path.join(ROOT_PKG_DIR, "createdb.sql"), "r") as file:
-        sql = file.read()
-    cur.executescript(sql)
-    conn.commit()
+from .config import DATA_DIR, DB_NAME, ROOT_PKG_DIR, DB_VERSION
 
 
 def fetch_tasks() -> list[tuple]:
@@ -278,7 +271,29 @@ def get_next_project_id() -> int:
     return id + 1 if id else 1
 
 
+def _init_db() -> None:
+    with open(os.path.join(ROOT_PKG_DIR, "createdb.sql"), "r") as file:
+        sql = file.read()
+    cur.executescript(sql)
+    conn.commit()
+
+
+def _update_db() -> None:
+    cur.execute("PRAGMA user_version")
+    user_version = cur.fetchone()[0]
+    if user_version == 0:
+        _migrate_from_0()
+
+
+def _migrate_from_0() -> None:
+    with open(os.path.join(ROOT_PKG_DIR, "migrate_from_0.sql"), "r") as file:
+        sql = file.read()
+    cur.executescript(sql)
+    conn.commit()
+
+
 conn = sqlite3.connect(os.path.join(DATA_DIR, DB_NAME))
 cur = conn.cursor()
 
 _init_db()
+_update_db()
