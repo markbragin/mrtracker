@@ -6,7 +6,6 @@
     "app_keys": {
         "reset_focus": "escape",
         "quit": "ctrl+q",
-        "switch_timer": "ctrl+p",
         "save_session": "ctrl+s",
         "discard_session": "ctrl+]",
         "show_stats": "ctrl+p",
