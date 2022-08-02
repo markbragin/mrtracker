@@ -24,31 +24,19 @@ class Stopwatch:
         self._saved_time = timedelta()
 
     @property
-    def elapsed_time(self) -> int:
+    def elapsed_time(self) -> timedelta:
         if self._on:
-            return (datetime.now() - self._start_t).seconds
+            return datetime.now() - self._start_t
         else:
-            return 0
+            return timedelta()
 
     @property
-    def elapsed_time_str(self) -> str:
-        return sec_to_str(self.elapsed_time)
+    def saved_time(self) -> timedelta:
+        return self._saved_time
 
     @property
-    def saved_time(self) -> int:
-        return self._saved_time.seconds
-
-    @property
-    def start_time_str(self) -> str:
-        """return start time in %H:%M:%S format"""
-        return self._start_t.strftime("%H:%M:%S")
-
-    @property
-    def end_time_str(self) -> str:
-        """return end time in %H:%M:%S format"""
-        return (
-            self._start_t + timedelta(seconds=self._saved_time.seconds)
-        ).strftime("%H:%M:%S")
+    def start_time(self) -> datetime:
+        return self._start_t
 
 
 def sec_to_str(seconds) -> str:

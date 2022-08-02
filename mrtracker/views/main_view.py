@@ -75,20 +75,20 @@ class MainView(GridView):
 
     async def save_session(self) -> None:
         self.timer.stop()
-        if self.timer.saved_time and self.tasklist.current_task:
+        if self.timer.get_saved_time() and self.tasklist.current_task:
             db.add_session(
                 self.tasklist.current_task.id,
                 datetime.now().strftime("%Y-%m-%d"),
-                self.timer.start_time,
-                self.timer.end_time,
-                self.timer.saved_time,
+                self.timer.get_start_time(),
+                self.timer.get_end_time(),
+                self.timer.get_saved_time(),
             )
-            self.tasklist.add_time(self.timer.saved_time)
+            self.tasklist.add_time(self.timer.get_saved_time())
             hl = config.styles["LOGGER_HIGHLIGHT"]
             ialogger.update(
                 "[b]Session saved[/]\n"
                 f"[{hl}]{self.current_task.content}[/] - "
-                f"{sec_to_str(self.timer.saved_time)}"
+                f"{sec_to_str(self.timer.get_saved_time())}"
             )
             await self.app.post_message_from_child(Upd(self))
         self.tasklist.current_task = None
