@@ -43,14 +43,14 @@ class TimeTracker(App):
 
     async def action_quit(self) -> None:
         ialogger.update("[i]Saving data...[/]")
-        await self.main_v.save_session()
+        await self.main_v.save_data()
         await self.shutdown()
 
     async def action_reset_focus(self) -> None:
         self.current_view = self.main_v
 
     async def action_save_session(self) -> None:
-        await self.main_v.save_session()
+        await self.main_v.save_data()
 
     def action_discard_session(self) -> None:
         self.main_v.discard_session()

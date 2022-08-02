@@ -73,26 +73,59 @@ class MainView(GridView):
     def start_session(self) -> None:
         self.timer.start()
 
-    async def save_session(self) -> None:
+    async def save_data(self) -> None:
         self.timer.stop()
-        if self.timer.get_saved_time() and self.tasklist.current_task:
-            db.add_session(
-                self.tasklist.current_task.id,
-                datetime.now().strftime("%Y-%m-%d"),
-                self.timer.get_start_time(),
-                self.timer.get_end_time(),
-                self.timer.get_saved_time(),
-            )
-            self.tasklist.add_time(self.timer.get_saved_time())
+        if self.timer.saved_time.seconds and self.tasklist.current_task:
+            if self.timer.end_time.date() > self.timer.start_time.date():
+                self._split_session_and_save()
+            else:
+                self._save_session()
+            await self.app.post_message_from_child(Upd(self))
             hl = config.styles["LOGGER_HIGHLIGHT"]
             ialogger.update(
                 "[b]Session saved[/]\n"
                 f"[{hl}]{self.current_task.content}[/] - "
-                f"{sec_to_str(self.timer.get_saved_time())}"
+                f"{sec_to_str(self.timer.saved_time.seconds)}"
             )
-            await self.app.post_message_from_child(Upd(self))
         self.tasklist.current_task = None
         self.timer.restart()
+
+    def _split_session_and_save(self) -> None:
+        end_of_first_day = self.timer.start_time.replace(
+            hour=23, minute=59, second=59
+        )
+        duration1 = (end_of_first_day - self.timer.start_time).seconds + 1
+        db.add_session(
+            self.tasklist.current_task.id,
+            self.timer.start_time.strftime("%Y-%m-%d"),
+            self.timer.start_time.strftime("%H:%M:%S"),
+            end_of_first_day.strftime("%H:%M:%S"),
+            duration1,
+        )
+        self.tasklist.add_time(duration1)
+
+        start_of_second_day = self.timer.end_time.replace(
+            hour=0, minute=0, second=0
+        )
+        duration2 = (self.timer.end_time - start_of_second_day).seconds
+        db.add_session(
+            self.tasklist.current_task.id,
+            self.timer.end_time.strftime("%Y-%m-%d"),
+            start_of_second_day.strftime("%H:%M:%S"),
+            self.timer.end_time.strftime("%H:%M:%S"),
+            duration2,
+        )
+        self.tasklist.add_time(duration2)
+
+    def _save_session(self) -> None:
+        db.add_session(
+            self.tasklist.current_task.id,
+            self.timer.start_time.strftime("%Y-%m-%d"),
+            self.timer.start_time.strftime("%H:%M:%S"),
+            self.timer.end_time.strftime("%H:%M:%S"),
+            self.timer.saved_time.seconds,
+        )
+        self.tasklist.add_time(self.timer.saved_time.seconds)
 
     def discard_session(self) -> None:
         if self.timer._working:
