@@ -15,6 +15,7 @@ CONFIG_PATH = os.path.join(CONFIG_DIR, CONFIG_FILE)
 BASE_CONFIG_PATH = os.path.join(ROOT_PKG_DIR, BASE_CONFIG_FILE)
 
 DB_NAME = "time.db"
+DB_VERSION = 1
 
 
 def create_dirs(path: str) -> None:

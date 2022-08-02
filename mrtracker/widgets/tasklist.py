@@ -160,7 +160,7 @@ class TaskList(NestedList):
     def _swap_entries(self) -> None:
         one = self.nodes[self._selected]
         two = self.nodes[self.cursor]
-        self._swap_ids(one, two)
+        self._swap_entry_ids(one.data, two.data)
         self._swap_trees(one, two)
         self._swap_nodes(one, two)
         if one.data.type == "task":
@@ -168,7 +168,7 @@ class TaskList(NestedList):
         else:
             db.swap_projects(one.data.id, two.data.id)
 
-    def _swap_ids(self, one: TreeNode, two: TreeNode) -> None:
+    def _swap_entry_ids(self, one: Entry, two: Entry) -> None:
         one.data.id, two.data.id = two.data.id, one.data.id
 
     def _swap_nodes(self, one: TreeNode, two: TreeNode) -> None:
