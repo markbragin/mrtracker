@@ -65,46 +65,37 @@ class MainView(GridView):
             self.current_task.clear_content()
         else:
             self.set_current_task(current_task)
-            self.switch_timer()
+            self.start_session()
 
     def set_current_task(self, current_task) -> None:
         self.current_task._content = current_task.title
 
-    def switch_timer(self) -> None:
-        if not self.tasklist.current_task:
-            ialogger.update("Error. Run the timer first.", error=True)
-            return
-        if self.timer.timer.paused:
-            ialogger.update("Paused")
-        else:
-            ialogger.update("Running")
-        self.timer.switch_timer()
+    def start_session(self) -> None:
+        self.timer.start()
 
     async def save_session(self) -> None:
-        if self.save_data() and self.tasklist.current_task:
-            self.tasklist.add_time(self.timer.time)
-        hl = config.styles["LOGGER_HIGHLIGHT"]
-        ialogger.update(
-            "[b]Session saved[/]\n"
-            f"[{hl}]{self.current_task.content}[/] - "
-            f"{sec_to_str(self.timer.time)}"
-        )
+        self.timer.stop()
+        if self.timer.saved_time and self.tasklist.current_task:
+            db.add_session(
+                self.tasklist.current_task.id,
+                datetime.now().strftime("%Y-%m-%d"),
+                self.timer.start_time,
+                self.timer.end_time,
+                self.timer.saved_time,
+            )
+            self.tasklist.add_time(self.timer.saved_time)
+            hl = config.styles["LOGGER_HIGHLIGHT"]
+            ialogger.update(
+                "[b]Session saved[/]\n"
+                f"[{hl}]{self.current_task.content}[/] - "
+                f"{sec_to_str(self.timer.saved_time)}"
+            )
+            await self.app.post_message_from_child(Upd(self))
         self.tasklist.current_task = None
-        self.timer.restart_timer()
-        await self.app.post_message_from_child(Upd(self))
-
-    def save_data(self) -> bool:
-        if not (self.timer.time and self.tasklist.current_task):
-            return False
-        db.add_session(
-            self.tasklist.current_task.id,
-            datetime.now().strftime("%Y-%m-%d"),
-            self.timer.time,
-        )
-        return True
+        self.timer.restart()
 
     def discard_session(self) -> None:
         if self.timer._working:
-            self.timer.restart_timer()
+            self.timer.restart()
             self.tasklist.current_task = None
             ialogger.update("Session discarded. Timer reset.")
