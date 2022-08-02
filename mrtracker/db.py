@@ -12,11 +12,6 @@ def _init_db() -> None:
     conn.commit()
 
 
-def _check_db_exists() -> bool:
-    cur.execute("SELECT name FROM sqlite_master WHERE type='table'")
-    return cur.fetchone()
-
-
 def fetch_tasks() -> list[tuple]:
     cur.execute(
         "SELECT t.id, p.id, t.name, SUM(s.time), t.tags "
@@ -286,8 +281,4 @@ def get_next_project_id() -> int:
 conn = sqlite3.connect(os.path.join(DATA_DIR, DB_NAME))
 cur = conn.cursor()
 
-if not _check_db_exists():
-    _init_db()
-
-cur.execute("PRAGMA foreign_keys=ON")
-conn.commit()
+_init_db()
