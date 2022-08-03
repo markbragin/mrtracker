@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 import os
 import shutil
@@ -19,6 +20,9 @@ DB_PATH = os.path.join(DATA_DIR, DB_NAME)
 CONFIG_PATH = os.path.join(CONFIG_DIR, CONFIG_FILE)
 BASE_CONFIG_PATH = os.path.join(ROOT_PKG_DIR, BASE_CONFIG_FILE)
 
+
+def generate_dump_name() -> str:
+    return f"mrtracker_{datetime.now().strftime('%Y-%m-%d_%H:%M:%S')}.sql"
 
 
 def create_dirs(path: str) -> None:
