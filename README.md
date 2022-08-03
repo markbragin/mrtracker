@@ -19,8 +19,19 @@ python3.10 -m pip install mrtracker
 
 ## Usage
 
+run the app:
 ```bash
 mrtracker
+```
+
+make a backup:
+```bash
+mrtracker backup [-p path/to/backup]
+```
+
+restore:
+```bash
+mrtracker restore path/to/backup
 ```
 
 ## Screenshot of the app
