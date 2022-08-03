@@ -17,5 +17,6 @@ CREATE TABLE IF NOT EXISTS sessions(
 INSERT INTO sessions (id, task_id, date, start_time, end_time, duration)
 SELECT id, task_id, date, "00:00:00", time(time, "unixepoch"), time
 FROM temp_sessions;
+DROP TABLE temp_sessions;
 PRAGMA user_version=1;
 COMMIT;
