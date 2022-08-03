@@ -21,8 +21,8 @@ CONFIG_PATH = os.path.join(CONFIG_DIR, CONFIG_FILE)
 BASE_CONFIG_PATH = os.path.join(ROOT_PKG_DIR, BASE_CONFIG_FILE)
 
 
-def generate_dump_name() -> str:
-    return f"mrtracker_{datetime.now().strftime('%Y-%m-%d_%H:%M:%S')}.sql"
+def generate_backup_name() -> str:
+    return f"mrtracker_{datetime.now().strftime('%Y-%m-%d_%H:%M:%S')}.backup"
 
 
 def create_dirs(path: str) -> None:
