@@ -7,17 +7,26 @@ from .config import generate_backup_name
 
 
 def backup_handler(args) -> None:
-    location = backup.create_backup(args.path)
-    print(f"dump created at [yellow]{location}[/]")
+    try:
+        location = backup.create_backup(args.path)
+    except FileNotFoundError:
+        print("[red]ERROR[/]. Provide correct path to the backup file")
+        exit(1)
+    except NotADirectoryError:
+        print("[red]ERROR[/]. Provide correct path to the backup file")
+        exit(1)
+    else:
+        print(f"Backup created at [yellow]{location}[/]")
 
 
 def restore_handler(args) -> None:
     try:
         backup.restore_data(args.filename)
     except FileNotFoundError:
-        print("[red]PROVIDE CORRECT PATH TO BACKUP FILE")
+        print("[red]ERROR[/]. Provide correct path to the backup file")
         exit(1)
-    print("[green]Data has been restored")
+    else:
+        print("[green]Data has been restored")
 
 
 parser = ArgumentParser(
