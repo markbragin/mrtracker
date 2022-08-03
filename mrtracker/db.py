@@ -278,6 +278,10 @@ def get_next_project_id() -> int:
     return id + 1 if id else 1
 
 
+def _db_exists() -> bool:
+    return os.path.exists(DB_PATH)
+
+
 def _init_db() -> None:
     with open(os.path.join(ROOT_PKG_DIR, "createdb.sql"), "r") as file:
         sql = file.read()
@@ -299,8 +303,11 @@ def _migrate_from_0() -> None:
     conn.commit()
 
 
-conn = sqlite3.connect(DB_PATH)
-cur = conn.cursor()
-
-_init_db()
-_update_db()
+if not _db_exists():
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    _init_db()
+else:
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    _update_db()
