@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 import os
 import sqlite3
 
-from .config import DATA_DIR, DB_NAME, ROOT_PKG_DIR
+from .config import DB_PATH, ROOT_PKG_DIR
 
 
 def fetch_tasks() -> list[tuple]:
@@ -299,7 +299,7 @@ def _migrate_from_0() -> None:
     conn.commit()
 
 
-conn = sqlite3.connect(os.path.join(DATA_DIR, DB_NAME))
+conn = sqlite3.connect(DB_PATH)
 cur = conn.cursor()
 
 _init_db()
