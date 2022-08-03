@@ -1,4 +1,5 @@
 PRAGMA foreign_keys=ON;
+PRAGMA user_version=1;
 BEGIN TRANSACTION;
 CREATE TABLE IF NOT EXISTS projects(
 	id INTEGER NOT NULL PRIMARY KEY,
@@ -20,6 +21,7 @@ CREATE TABLE IF NOT EXISTS sessions(
     date TEXT NOT NULL,
     start_time TEXT NOT NULL,
     end_time TEXT NOT NULL,
+    duration INTEGER NOT NULL,
     FOREIGN KEY(task_id)
         REFERENCES tasks(id)
         ON DELETE CASCADE
