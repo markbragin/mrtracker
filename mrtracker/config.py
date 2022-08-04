@@ -25,6 +25,10 @@ def generate_backup_name() -> str:
     return f"mrtracker_{datetime.now().strftime('%Y-%m-%d_%H:%M:%S')}.backup"
 
 
+def generate_csv_name() -> str:
+    return f"mrtracker_{datetime.now().strftime('%Y-%m-%d_%H:%M:%S')}.csv"
+
+
 def create_dirs(path: str) -> None:
     if not os.path.exists(path):
         create_dirs(os.path.dirname(path))
