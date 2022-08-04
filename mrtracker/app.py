@@ -19,8 +19,8 @@ class TimeTracker(App):
         for action, key in config.app_keys.items():
             await self.bind(key, action)
 
-    async def on_upd(self) -> None:
-        await self.stats_v.update()
+    async def on_db_update(self) -> None:
+        self.stats_v.require_update()
 
     async def on_mount(self) -> None:
         self.main_v = MainView()
@@ -60,4 +60,3 @@ class TimeTracker(App):
 
     async def action_show_stats(self) -> None:
         self.current_view = self.stats_v
-

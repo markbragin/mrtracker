@@ -5,7 +5,7 @@ from textual.views._grid_view import GridView
 
 from .. import db
 from ..config import config
-from ..events import Upd
+from ..events import DbUpdate
 from ..stopwatch import sec_to_str
 from ..widgets.current_task import CurrentTask
 from ..widgets.header import MyHeader
@@ -80,7 +80,7 @@ class MainView(GridView):
                 self._split_session_and_save()
             else:
                 self._save_session()
-            await self.app.post_message_from_child(Upd(self))
+            await self.app.post_message_from_child(DbUpdate(self))
             hl = config.styles["LOGGER_HIGHLIGHT"]
             ialogger.update(
                 "[b]Session saved[/]\n"

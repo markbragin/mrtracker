@@ -8,7 +8,7 @@ from textual.widgets import NodeID, TreeNode
 
 from .. import db
 from ..config import config
-from ..events import Upd
+from ..events import DbUpdate
 from ..mode import Action, Mode
 from ..stopwatch import sec_to_str
 from .entry import Entry, generate_entry
@@ -154,7 +154,7 @@ class TaskList(NestedList):
         self.cursor = self._selected if self._selected else self.cursor
         self._selected = None
         self._action = None
-        await self.app.post_message_from_child(Upd(self))
+        await self.app.post_message_from_child(DbUpdate(self))
         ialogger.update("[b]DONE[/]")
 
     def _swap_entries(self) -> None:
@@ -376,7 +376,7 @@ class TaskList(NestedList):
         await self.remove_node()
         await self.go_down()
         self.sum_projects_time()
-        await self.app.post_message_from_child(Upd(self))
+        await self.app.post_message_from_child(DbUpdate(self))
         ialogger.update("[b]DONE[/]")
 
     async def _handle_resetting_task_time(self) -> None:
@@ -396,7 +396,7 @@ class TaskList(NestedList):
             db.delete_sessions_by_task_ids([entry.id])
             entry.time = 0
         self.sum_projects_time()
-        await self.app.post_message_from_child(Upd(self))
+        await self.app.post_message_from_child(DbUpdate(self))
         ialogger.update("[b]DONE[/]")
 
     async def _handle_changing_tag(self) -> None:
@@ -412,7 +412,7 @@ class TaskList(NestedList):
             entry.tag = new_tag
             task_ids.append(entry.id)
         db.update_tags(task_ids, new_tag)
-        await self.app.post_message_from_child(Upd(self))
+        await self.app.post_message_from_child(DbUpdate(self))
         ialogger.update("[b]DONE[/]")
 
     def add_time(self, time: int) -> None:
