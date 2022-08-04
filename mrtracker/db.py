@@ -173,6 +173,20 @@ def fetch_tags_month() -> list[tuple]:
     return cur.fetchall()
 
 
+def fetch_for_csv() -> list[tuple]:
+    """fetches project|task|tags|date|start_time|end_time|duration(str)"""
+    cur.execute(
+        "SELECT p.name, t.name, t.tags, s.date, "
+        "s.start_time, s.end_time, time(s.duration, 'unixepoch') "
+        "FROM sessions s "
+        "LEFT JOIN tasks t "
+        "ON s.task_id = t.id "
+        "LEFT JOIN projects p "
+        "ON t.project_id = p.id "
+    )
+    return cur.fetchall()
+
+
 def add_session(
     task_id: int,
     date: str,
