@@ -3,7 +3,7 @@ from argparse import ArgumentParser
 from rich import print
 
 from . import backup
-from .config import generate_backup_name
+from .config import generate_backup_name, generate_csv_name
 
 
 def backup_handler(args) -> None:
@@ -29,6 +29,19 @@ def restore_handler(args) -> None:
         print("[green]Data has been restored")
 
 
+def csv_handler(args) -> None:
+    try:
+        location = backup.create_csv(args.path)
+    except IsADirectoryError:
+        print("[red]ERROR[/]. Provide correct path to the csv file")
+        exit(1)
+    except NotADirectoryError:
+        print("[red]ERROR[/]. Provide correct path to the csv file")
+        exit(1)
+    else:
+        print(f"csv vile created at [yellow]{location}[/]")
+
+
 parser = ArgumentParser(
     prog="mrtracker",
     description="mrtracker - a TUI time tracker.",
@@ -45,7 +58,7 @@ backup_parser.add_argument(
     "--path",
     dest="path",
     default=generate_backup_name(),
-    help=f"specify path. Defaults to './mrtracker_<datetime>.backup'",
+    help=f"specify path. Defaults to <current directory>",
 )
 backup_parser.set_defaults(func=backup_handler)
 
@@ -58,3 +71,16 @@ restore_parser.add_argument(
     help="specify path to backup",
 )
 restore_parser.set_defaults(func=restore_handler)
+
+csv_parser = commands_parser.add_parser(
+    name="csv",
+    help="export data to csv",
+)
+csv_parser.add_argument(
+    "-p",
+    "--path",
+    dest="path",
+    default=generate_csv_name(),
+    help=f"specify path. Defaults to <current directory>",
+)
+csv_parser.set_defaults(func=csv_handler)
