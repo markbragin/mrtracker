@@ -34,6 +34,11 @@ restore:
 mrtracker restore path/to/backup
 ```
 
+export data to csv:
+```bash
+mrtracker csv [-p path/to/csv]
+```
+
 ## Screenshot of the app
 
 ![mrtracker](./imgs/look.png "mrtracker")
