@@ -4,6 +4,7 @@
 ### Added
 - changelog
 - backup and restore
+- export data to CSV
 
 ### Fixed
 - bug when session goes through 00:00 and the whole time is logged to one day
