@@ -325,3 +325,5 @@ else:
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
     _update_db()
+
+cur.execute("PRAGMA foreign_keys=ON")
