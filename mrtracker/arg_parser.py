@@ -9,12 +9,10 @@ from .config import generate_backup_name, generate_csv_name
 def backup_handler(args) -> None:
     try:
         location = backup.create_backup(args.path)
-    except FileNotFoundError:
-        print("[red]ERROR[/]. Provide correct path to the backup file")
-        exit(1)
-    except NotADirectoryError:
-        print("[red]ERROR[/]. Provide correct path to the backup file")
-        exit(1)
+    except FileNotFoundError as e:
+        print(e)
+    except NotADirectoryError as e:
+        print(e)
     else:
         print(f"Backup created at [yellow]{location}[/]")
 
@@ -22,9 +20,8 @@ def backup_handler(args) -> None:
 def restore_handler(args) -> None:
     try:
         backup.restore_data(args.filename)
-    except FileNotFoundError:
-        print("[red]ERROR[/]. Provide correct path to the backup file")
-        exit(1)
+    except FileNotFoundError as e:
+        print(e)
     else:
         print("[green]Data has been restored")
 
@@ -32,12 +29,10 @@ def restore_handler(args) -> None:
 def csv_handler(args) -> None:
     try:
         location = backup.create_csv(args.path)
-    except IsADirectoryError:
-        print("[red]ERROR[/]. Provide correct path to the csv file")
-        exit(1)
-    except NotADirectoryError:
-        print("[red]ERROR[/]. Provide correct path to the csv file")
-        exit(1)
+    except IsADirectoryError as e:
+        print(e)
+    except NotADirectoryError as e:
+        print(e)
     else:
         print(f"csv vile created at [yellow]{location}[/]")
 
