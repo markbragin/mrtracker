@@ -4,42 +4,39 @@ from datetime import datetime, timedelta
 class Stopwatch:
 
     _on: bool = False
-    _paused: bool = False
-
-    def __init__(self) -> None:
-        self.restart()
+    _start_t: datetime = datetime.now()
+    _saved_time = timedelta()
 
     @property
     def on(self) -> bool:
         return self._on
 
-    @property
-    def paused(self) -> bool:
-        return self._paused
-
-    def restart(self):
-        self._on = False
-        self._paused = False
-        self._saved_t = timedelta()
-
-    def switch(self):
+    def start(self) -> None:
         self._on = True
-        if self._paused:
-            self._paused = False
-            self._saved_t += datetime.now() - self._start_t
-        else:
-            self._paused = True
-            self._start_t = datetime.now()
+        self._start_t = datetime.now()
 
-    def get_elapsed_time(self):
-        if self._paused:
-            self._elapsed_t = datetime.now() - self._start_t + self._saved_t
-        else:
-            self._elapsed_t = self._saved_t
-        return self._elapsed_t.seconds
+    def stop(self) -> None:
+        self._on = False
+        self._saved_time = datetime.now() - self._start_t
 
-    def get_elapsed_time_str(self):
-        return sec_to_str(self.get_elapsed_time())
+    def restart(self) -> None:
+        self._on = False
+        self._saved_time = timedelta()
+
+    @property
+    def elapsed_time(self) -> timedelta:
+        if self._on:
+            return datetime.now() - self._start_t
+        else:
+            return timedelta()
+
+    @property
+    def saved_time(self) -> timedelta:
+        return self._saved_time
+
+    @property
+    def start_time(self) -> datetime:
+        return self._start_t
 
 
 def sec_to_str(seconds) -> str:

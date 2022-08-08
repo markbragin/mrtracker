@@ -2,24 +2,12 @@ from datetime import datetime, timedelta
 import os
 import sqlite3
 
-from .config import DATA_DIR, DB_NAME, ROOT_PKG_DIR
-
-
-def _init_db() -> None:
-    with open(os.path.join(ROOT_PKG_DIR, "createdb.sql"), "r") as file:
-        sql = file.read()
-    cur.executescript(sql)
-    conn.commit()
-
-
-def _check_db_exists() -> bool:
-    cur.execute("SELECT name FROM sqlite_master WHERE type='table'")
-    return cur.fetchone()
+from .config import DB_PATH, ROOT_PKG_DIR
 
 
 def fetch_tasks() -> list[tuple]:
     cur.execute(
-        "SELECT t.id, p.id, t.name, SUM(s.time), t.tags "
+        "SELECT t.id, p.id, t.name, SUM(s.duration), t.tags "
         "FROM tasks t "
         "LEFT JOIN projects p "
         "ON t.project_id = p.id "
@@ -40,7 +28,7 @@ def fetch_projects() -> list[tuple]:
 
 def fetch_tasks_today() -> list[tuple]:
     cur.execute(
-        "SELECT t.name, SUM(s.time) sum, p.name "
+        "SELECT t.name, SUM(s.duration) sum, p.name "
         "FROM sessions s "
         "LEFT JOIN tasks t "
         "ON t.id = s.task_id "
@@ -57,7 +45,7 @@ def fetch_tasks_week() -> list[tuple]:
     now = datetime.now()
     week_ago = now - timedelta(days=7)
     cur.execute(
-        "SELECT t.name, SUM(s.time) sum, p.name "
+        "SELECT t.name, SUM(s.duration) sum, p.name "
         "FROM sessions s "
         "LEFT JOIN tasks t "
         "ON t.id = s.task_id "
@@ -75,7 +63,7 @@ def fetch_tasks_month() -> list[tuple]:
     now = datetime.now()
     month_ago = now - timedelta(days=30)
     cur.execute(
-        "SELECT t.name, SUM(s.time) sum, p.name "
+        "SELECT t.name, SUM(s.duration) sum, p.name "
         "FROM sessions s "
         "LEFT JOIN tasks t "
         "ON t.id = s.task_id "
@@ -91,7 +79,7 @@ def fetch_tasks_month() -> list[tuple]:
 
 def fetch_projects_today() -> list[tuple]:
     cur.execute(
-        "SELECT p.name, SUM(s.time) sum "
+        "SELECT p.name, SUM(s.duration) sum "
         "FROM sessions s "
         "LEFT JOIN tasks t "
         "ON t.id = s.task_id "
@@ -108,7 +96,7 @@ def fetch_projects_week() -> list[tuple]:
     now = datetime.now()
     week_ago = now - timedelta(days=7)
     cur.execute(
-        "SELECT p.name, SUM(s.time) sum "
+        "SELECT p.name, SUM(s.duration) sum "
         "FROM sessions s "
         "LEFT JOIN tasks t "
         "ON t.id = s.task_id "
@@ -126,7 +114,7 @@ def fetch_projects_month() -> list[tuple]:
     now = datetime.now()
     month_ago = now - timedelta(days=30)
     cur.execute(
-        "SELECT p.name, SUM(s.time) sum "
+        "SELECT p.name, SUM(s.duration) sum "
         "FROM sessions s "
         "LEFT JOIN tasks t "
         "ON t.id = s.task_id "
@@ -142,7 +130,7 @@ def fetch_projects_month() -> list[tuple]:
 
 def fetch_tags_today() -> list[tuple]:
     cur.execute(
-        "SELECT t.tags, SUM(s.time) sum "
+        "SELECT t.tags, SUM(s.duration) sum "
         "FROM sessions s "
         "LEFT JOIN tasks t "
         "ON t.id = s.task_id "
@@ -157,7 +145,7 @@ def fetch_tags_week() -> list[tuple]:
     now = datetime.now()
     week_ago = now - timedelta(days=7)
     cur.execute(
-        "SELECT t.tags, SUM(s.time) sum "
+        "SELECT t.tags, SUM(s.duration) sum "
         "FROM sessions s "
         "LEFT JOIN tasks t "
         "ON t.id = s.task_id "
@@ -173,7 +161,7 @@ def fetch_tags_month() -> list[tuple]:
     now = datetime.now()
     month_ago = now - timedelta(days=30)
     cur.execute(
-        "SELECT t.tags, SUM(s.time) sum "
+        "SELECT t.tags, SUM(s.duration) sum "
         "FROM sessions s "
         "LEFT JOIN tasks t "
         "ON t.id = s.task_id "
@@ -185,10 +173,31 @@ def fetch_tags_month() -> list[tuple]:
     return cur.fetchall()
 
 
-def add_session(task_id: int, date: str, time: int) -> None:
+def fetch_for_csv() -> list[tuple]:
+    """fetches project|task|tags|date|start_time|end_time|duration(str)"""
     cur.execute(
-        "INSERT INTO sessions (task_id, date, time) VALUES (?, ?, ?)",
-        (task_id, date, time),
+        "SELECT p.name, t.name, t.tags, s.date, "
+        "s.start_time, s.end_time, time(s.duration, 'unixepoch') "
+        "FROM sessions s "
+        "LEFT JOIN tasks t "
+        "ON s.task_id = t.id "
+        "LEFT JOIN projects p "
+        "ON t.project_id = p.id "
+    )
+    return cur.fetchall()
+
+
+def add_session(
+    task_id: int,
+    date: str,
+    start_time: str,
+    end_time: str,
+    duration: int,
+) -> None:
+    cur.execute(
+        "INSERT INTO sessions (task_id, date, start_time, end_time, duration) "
+        "VALUES (?, ?, ?, ?, ?)",
+        (task_id, date, start_time, end_time, duration),
     )
     conn.commit()
 
@@ -283,11 +292,38 @@ def get_next_project_id() -> int:
     return id + 1 if id else 1
 
 
-conn = sqlite3.connect(os.path.join(DATA_DIR, DB_NAME))
-cur = conn.cursor()
+def _db_exists() -> bool:
+    return os.path.exists(DB_PATH)
 
-if not _check_db_exists():
+
+def _init_db() -> None:
+    with open(os.path.join(ROOT_PKG_DIR, "createdb.sql"), "r") as file:
+        sql = file.read()
+    cur.executescript(sql)
+    conn.commit()
+
+
+def _update_db() -> None:
+    cur.execute("PRAGMA user_version")
+    user_version = cur.fetchone()[0]
+    if user_version == 0:
+        _migrate_from_0()
+
+
+def _migrate_from_0() -> None:
+    with open(os.path.join(ROOT_PKG_DIR, "migrate_from_0.sql"), "r") as file:
+        sql = file.read()
+    cur.executescript(sql)
+    conn.commit()
+
+
+if not _db_exists():
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
     _init_db()
+else:
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    _update_db()
 
 cur.execute("PRAGMA foreign_keys=ON")
-conn.commit()

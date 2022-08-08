@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 import os
 import shutil
@@ -7,14 +8,25 @@ from platformdirs import user_config_dir, user_data_dir
 
 ROOT_PKG_DIR = os.path.dirname(os.path.abspath(__file__))
 APP_NAME = "mrtracker"
+DB_NAME = "time.db"
 CONFIG_FILE = "config.json"
 BASE_CONFIG_FILE = "default_config.json"
+DB_VERSION = 1
+
 DATA_DIR = user_data_dir(APP_NAME)
 CONFIG_DIR = user_config_dir(APP_NAME)
+
+DB_PATH = os.path.join(DATA_DIR, DB_NAME)
 CONFIG_PATH = os.path.join(CONFIG_DIR, CONFIG_FILE)
 BASE_CONFIG_PATH = os.path.join(ROOT_PKG_DIR, BASE_CONFIG_FILE)
 
-DB_NAME = "time.db"
+
+def generate_backup_name() -> str:
+    return f"mrtracker_{datetime.now().strftime('%Y-%m-%d_%H:%M:%S')}.backup"
+
+
+def generate_csv_name() -> str:
+    return f"mrtracker_{datetime.now().strftime('%Y-%m-%d_%H:%M:%S')}.csv"
 
 
 def create_dirs(path: str) -> None:

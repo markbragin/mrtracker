@@ -19,8 +19,8 @@ class TimeTracker(App):
         for action, key in config.app_keys.items():
             await self.bind(key, action)
 
-    async def on_upd(self) -> None:
-        await self.stats_v.update()
+    async def on_db_update(self) -> None:
+        self.stats_v.require_update()
 
     async def on_mount(self) -> None:
         self.main_v = MainView()
@@ -43,24 +43,20 @@ class TimeTracker(App):
 
     async def action_quit(self) -> None:
         ialogger.update("[i]Saving data...[/]")
-        self.main_v.save_data()
+        await self.main_v.save_data()
         await self.shutdown()
 
     async def action_reset_focus(self) -> None:
         self.current_view = self.main_v
-        await self.main_v.tasklist.focus()
-
-    def action_switch_timer(self) -> None:
-        self.main_v.switch_timer()
 
     async def action_save_session(self) -> None:
-        await self.main_v.save_session()
+        await self.main_v.save_data()
+
+    def action_discard_session(self) -> None:
+        self.main_v.discard_session()
 
     async def action_show_help(self) -> None:
         self.current_view = self.help_v
 
     async def action_show_stats(self) -> None:
         self.current_view = self.stats_v
-
-    def action_discard_session(self) -> None:
-        self.main_v.discard_session()

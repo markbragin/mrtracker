@@ -1,8 +1,14 @@
-from .app import TimeTracker
+import sys
 
 
 def main():
-    TimeTracker.run(title="MRTracker")
+    if len(sys.argv) < 2:
+        from .app import TimeTracker
+        TimeTracker.run(title="MRTracker")
+    else:
+        from .arg_parser import parser
+        args = parser.parse_args()
+        args.func(args)
 
 
 if __name__ == "__main__":
