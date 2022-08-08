@@ -8,13 +8,13 @@ MRTracker is a TUI time tracker.
 
 python3.10 is required.
 
-You can install app using pip:
+to install use:
+```bash
+pip install git+https://github.com/markbragin/mrtracker.git
+```
+or:
 ```bash
 pip -m install mrtracker
-```
-or
-```
-python3.10 -m pip install mrtracker
 ```
 
 ## Usage
