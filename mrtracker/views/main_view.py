@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from textual.reactive import watch
 from textual.views._grid_view import GridView
 
@@ -72,6 +70,7 @@ class MainView(GridView):
 
     def start_session(self) -> None:
         self.timer.start()
+        ialogger.update("Running")
 
     async def save_data(self) -> None:
         self.timer.stop()

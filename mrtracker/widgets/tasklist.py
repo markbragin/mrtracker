@@ -1,3 +1,5 @@
+from sqlite3 import IntegrityError
+
 from rich.console import RenderableType
 from rich.padding import PaddingDimensions
 from rich.panel import Panel
@@ -345,7 +347,16 @@ class TaskList(NestedList):
 
         entry.title = entry.content
         if entry.type == "project":
-            db.add_project(entry.title)
+            try:
+                db.add_project(entry.title)
+            except IntegrityError:
+                ialogger.update(
+                    "[red]ERROR[/]. "
+                    + f"Project with name {entry.title} already exists",
+                    error=True,
+                )
+                await self.remove_node()
+
         else:
             db.add_task(entry.title, entry.project_id)
 

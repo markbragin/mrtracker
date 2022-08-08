@@ -1,6 +1,9 @@
 # Changelog
 
 ## [Unreleased]
+
+
+## [0.4.0] 08-08-2022
 ### Added
 - changelog
 - backup and restore
@@ -8,6 +11,7 @@
 
 ### Fixed
 - bug when session goes through 00:00 and the whole time is logged to one day
+- bug: crash when adding project with existing name
 
 
 ## [0.3.0] - 01-08-2022
