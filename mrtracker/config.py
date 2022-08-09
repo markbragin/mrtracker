@@ -10,7 +10,7 @@ APP_NAME = "mrtracker"
 DB_NAME = "time.db"
 CONFIG_FILE = "config.json"
 BASE_CONFIG_FILE = "default_config.json"
-DB_VERSION = 1
+DB_VERSION = 2
 
 ROOT_PKG_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = user_data_dir(APP_NAME)
