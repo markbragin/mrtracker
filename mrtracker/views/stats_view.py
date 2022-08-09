@@ -5,7 +5,7 @@ from rich.table import Table
 from textual import events
 from textual.views._grid_view import GridView
 
-from .. import db
+from ..db import Database
 from ..config import config
 from ..stopwatch import sec_to_str
 from ..widgets.simple_scrollview import SimpleScrollView
@@ -15,6 +15,8 @@ TimeInterval = Literal["today", "week", "month"]
 
 SSS = config.styles["STATS_SUBHEADERS_STYLE"]
 SPS = config.styles["STATS_PROJECTS_STYLE"]
+
+db = Database()
 
 
 class StatsView(GridView):

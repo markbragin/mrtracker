@@ -6,15 +6,16 @@ import shutil
 from platformdirs import user_config_dir, user_data_dir
 
 
-ROOT_PKG_DIR = os.path.dirname(os.path.abspath(__file__))
 APP_NAME = "mrtracker"
 DB_NAME = "time.db"
 CONFIG_FILE = "config.json"
 BASE_CONFIG_FILE = "default_config.json"
-DB_VERSION = 1
+DB_VERSION = 2
 
+ROOT_PKG_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = user_data_dir(APP_NAME)
 CONFIG_DIR = user_config_dir(APP_NAME)
+SQL_DIR = os.path.join(ROOT_PKG_DIR, "sql")
 
 DB_PATH = os.path.join(DATA_DIR, DB_NAME)
 CONFIG_PATH = os.path.join(CONFIG_DIR, CONFIG_FILE)
