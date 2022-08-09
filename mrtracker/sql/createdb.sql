@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS sessions(
     date TEXT NOT NULL,
     start_time TEXT NOT NULL,
     end_time TEXT NOT NULL,
-    duration INTEGER as (strftime("%s", end_time) - strftime("%s", start_time)) STORED)
+    duration INTEGER as (strftime("%s", end_time) - strftime("%s", start_time)) STORED,
     FOREIGN KEY(task_id)
         REFERENCES tasks(id)
         ON DELETE CASCADE
