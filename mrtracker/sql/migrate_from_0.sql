@@ -1,8 +1,7 @@
 PRAGMA foreign_keys=ON;
 BEGIN TRANSACTION;
-CREATE TABLE temp_sessions AS select * from sessions;
-DROP TABLE sessions;
-CREATE TABLE IF NOT EXISTS sessions(
+ALTER TABLE sessions RENAME TO _old_sessions;
+CREATE TABLE sessions(
     id INTEGER NOT NULL primary key,
     task_id INTEGER NOT NULL,
     date TEXT NOT NULL,
@@ -16,7 +15,7 @@ CREATE TABLE IF NOT EXISTS sessions(
 );
 INSERT INTO sessions (id, task_id, date, start_time, end_time, duration)
 SELECT id, task_id, date, "00:00:00", time(time, "unixepoch"), time
-FROM temp_sessions;
-DROP TABLE temp_sessions;
+FROM _old_sessions;
+DROP TABLE _old_sessions;
 PRAGMA user_version=1;
 COMMIT;
