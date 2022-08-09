@@ -8,7 +8,7 @@ from rich.text import Text, TextType
 from textual.reactive import Reactive, events
 from textual.widgets import NodeID, TreeNode
 
-from .. import db
+from ..db import Database
 from ..config import config
 from ..events import DbUpdate
 from ..mode import Action, Mode
@@ -16,6 +16,8 @@ from ..stopwatch import sec_to_str
 from .entry import Entry, generate_entry
 from .in_app_logger import ialogger
 from .nested_list import NestedList
+
+db = Database()
 
 
 HL = config.styles["LOGGER_HIGHLIGHT"]

@@ -3,7 +3,7 @@ import os
 import shutil
 
 from .config import DB_PATH, generate_backup_name, generate_csv_name
-from .db import fetch_for_csv
+from .db import Database
 
 
 def create_backup(path: str) -> str:
@@ -33,7 +33,7 @@ def create_csv(path: str) -> str:
     else:
         csv_path = os.path.join(".", path)
 
-    data = fetch_for_csv()
+    data = Database().fetch_for_csv()
     with open(csv_path, "w", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(

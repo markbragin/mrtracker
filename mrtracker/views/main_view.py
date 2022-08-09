@@ -1,7 +1,7 @@
 from textual.reactive import watch
 from textual.views._grid_view import GridView
 
-from .. import db
+from ..db import Database
 from ..config import config
 from ..events import DbUpdate
 from ..stopwatch import sec_to_str
@@ -11,6 +11,9 @@ from ..widgets.in_app_logger import ialogger
 from ..widgets.simple_scrollview import SimpleScrollView
 from ..widgets.tasklist import TaskList
 from ..widgets.timer import Timer
+
+
+db = Database()
 
 
 class MainView(GridView):
