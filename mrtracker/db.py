@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 import os
 import sqlite3
 
-from .config import DB_PATH, ROOT_PKG_DIR
+from .config import DB_PATH, SQL_DIR
 from .singleton_meta import SingletonMeta
 
 
@@ -25,7 +25,7 @@ class Database(metaclass=SingletonMeta):
         return True if tables == {"sessions", "tasks", "projects"} else False
 
     def _create_db(self) -> None:
-        with open(os.path.join(ROOT_PKG_DIR, "createdb.sql"), "r") as file:
+        with open(os.path.join(SQL_DIR, "createdb.sql"), "r") as file:
             sql = file.read()
         self.cur.executescript(sql)
         self.conn.commit()
@@ -37,9 +37,7 @@ class Database(metaclass=SingletonMeta):
             self._migrate_from_0()
 
     def _migrate_from_0(self) -> None:
-        with open(
-            os.path.join(ROOT_PKG_DIR, "migrate_from_0.sql"), "r"
-        ) as file:
+        with open(os.path.join(SQL_DIR, "migrate_from_0.sql"), "r") as file:
             sql = file.read()
         self.cur.executescript(sql)
         self.conn.commit()
