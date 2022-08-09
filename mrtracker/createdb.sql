@@ -27,4 +27,6 @@ CREATE TABLE IF NOT EXISTS sessions(
         ON DELETE CASCADE
         ON UPDATE CASCADE
 );
+CREATE INDEX IF NOT EXISTS task_id_ ON sessions(task_id);
+CREATE INDEX IF NOT EXISTS date_ ON sessions(date);
 COMMIT;
