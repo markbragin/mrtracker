@@ -2,7 +2,9 @@ from datetime import datetime, timedelta
 import os
 import sqlite3
 
-from .config import DB_PATH, SQL_DIR
+from rich import print
+
+from .config import DB_PATH, DB_VERSION, SQL_DIR
 from .singleton_meta import SingletonMeta
 
 
@@ -33,11 +35,20 @@ class Database(metaclass=SingletonMeta):
     def _update_db(self) -> None:
         self.cur.execute("PRAGMA user_version")
         user_version = self.cur.fetchone()[0]
-        if user_version == 0:
-            self._migrate_from_0()
+        if user_version < DB_VERSION:
+            try:
+                self._migrate(user_version)
+            except FileNotFoundError:
+                print(
+                    "[red]Whoops. Seems like wrong db version.[/]\n"
+                    "[green]Contact developer.\n[/]"
+                    "[blue]https://github.com/markbragin/mrtracker"
+                )
+                exit(2)
 
-    def _migrate_from_0(self) -> None:
-        with open(os.path.join(SQL_DIR, "migrate_from_0.sql"), "r") as file:
+    def _migrate(self, old_version: int) -> None:
+        sql_script = f"migrate_from_{old_version}.sql"
+        with open(os.path.join(SQL_DIR, sql_script), "r") as file:
             sql = file.read()
         self.cur.executescript(sql)
         self.conn.commit()
