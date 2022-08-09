@@ -39,7 +39,8 @@ def csv_handler(args) -> None:
 
 parser = ArgumentParser(
     prog="mrtracker",
-    description="mrtracker - a TUI time tracker.",
+    description="mrtracker - a TUI time tracker.\n"
+    + "https://github.com/markbragin/mrtracker",
 )
 
 commands_parser = parser.add_subparsers(title="commands")
