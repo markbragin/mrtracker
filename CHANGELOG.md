@@ -3,6 +3,10 @@
 ## [Unreleased]
 
 
+## [0.4.2] 11-13-2022
+### Fixed
+- bug with inserting duration into db
+
 ## [0.4.1] 11-12-2022
 ### Fixed
 - bug when swap projects in the list
