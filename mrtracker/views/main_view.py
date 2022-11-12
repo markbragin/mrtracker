@@ -102,7 +102,6 @@ class MainView(GridView):
             self.timer.start_time.strftime("%Y-%m-%d"),
             self.timer.start_time.strftime("%H:%M:%S"),
             end_of_first_day.strftime("%H:%M:%S"),
-            duration1,
         )
         self.tasklist.add_time(duration1)
 
@@ -115,7 +114,6 @@ class MainView(GridView):
             self.timer.end_time.strftime("%Y-%m-%d"),
             start_of_second_day.strftime("%H:%M:%S"),
             self.timer.end_time.strftime("%H:%M:%S"),
-            duration2,
         )
         self.tasklist.add_time(duration2)
 
@@ -125,7 +123,6 @@ class MainView(GridView):
             self.timer.start_time.strftime("%Y-%m-%d"),
             self.timer.start_time.strftime("%H:%M:%S"),
             self.timer.end_time.strftime("%H:%M:%S"),
-            self.timer.saved_time.seconds,
         )
         self.tasklist.add_time(self.timer.saved_time.seconds)
 

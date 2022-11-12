@@ -229,12 +229,11 @@ class Database(metaclass=SingletonMeta):
         date: str,
         start_time: str,
         end_time: str,
-        duration: int,
     ) -> None:
         self.cur.execute(
-            "INSERT INTO sessions (task_id, date, start_time, end_time, duration) "
-            "VALUES (?, ?, ?, ?, ?)",
-            (task_id, date, start_time, end_time, duration),
+            "INSERT INTO sessions (task_id, date, start_time, end_time) "
+            "VALUES (?, ?, ?, ?)",
+            (task_id, date, start_time, end_time),
         )
         self.conn.commit()
 
