@@ -173,7 +173,7 @@ class TaskList(NestedList):
             db.swap_projects(one.data.id, two.data.id)
 
     def _swap_entry_ids(self, one: Entry, two: Entry) -> None:
-        one.data.id, two.data.id = two.data.id, one.data.id
+        one.id, two.id = two.id, one.id
 
     def _swap_nodes(self, one: TreeNode, two: TreeNode) -> None:
         children = one.parent.children
