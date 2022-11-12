@@ -3,6 +3,10 @@
 ## [Unreleased]
 
 
+## [0.4.1] 11-12-2022
+### Fixed
+- bug when swap projects in the list
+
 ## [0.4.0] 08-08-2022
 ### Added
 - changelog
